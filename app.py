@@ -4,51 +4,43 @@ from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 import plotly.express as px
 
-# 1. NEW Page Configuration (ไอคอนใหม่บน Browser Tab)
-st.set_page_config(
-    page_title="VELO. | Money Intelligence", 
-    page_icon="🌑", 
-    layout="wide"
-)
+# 1. Page Configuration
+st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="🌑", layout="wide")
 
-# 2. CUSTOM CSS: ยกระดับดีไซน์ให้ดูพรีเมียม (Font & Gradient)
+# --- CUSTOM CSS (ความคูลระดับโลก) ---
 st.markdown("""
     <style>
-    /* นำเข้าฟอนต์ Inter ที่แอปชั้นนำระดับโลกใช้ */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
-    
-    html, body, [class*="css"]  {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* สไตล์ชื่อแอปแบบ Gradient */
+    html, body, [class*="css"]  { font-family: 'Inter', sans-serif; }
     .app-title {
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        margin-bottom: 0px !important;
         background: linear-gradient(90.13deg, #FFFFFF 0%, #717171 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
-    
-    /* สไตล์คำบรรยายใต้ชื่อ */
-    .app-subtitle {
-        font-size: 14px !important;
-        color: #888888 !important;
-        letter-spacing: 2px !important;
-        text-transform: uppercase;
-        margin-bottom: 30px !important;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. NEW Title Section
-st.markdown('<p class="app-title">VELO. 🌑</p>', unsafe_allow_html=True)
-st.markdown('<p class="app-subtitle">Strategic Intelligence & Spending Velocity</p>', unsafe_allow_html=True)
+# 2. DEFINE FUNCTIONS (ต้องวางไว้ตรงนี้เพื่อให้ข้างล่างรู้จัก)
+def load_public_data(url, gid):
+    try:
+        base_url = url.split('/edit')[0]
+        csv_url = f"{base_url}/export?format=csv&gid={gid}"
+        return pd.read_csv(csv_url)
+    except:
+        return pd.DataFrame()
 
-# 4. Setup Connection & Constants (เหมือนเดิม)
+# 3. SET CONSTANTS
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
+
+# 4. START UI
+st.markdown('<p class="app-title">VELO. 🌑</p>', unsafe_allow_html=True)
+st.caption("STRATEGIC INTELLIGENCE & SPENDING VELOCITY")
+
+# --- หลังจากนี้ค่อยเป็น Section 1 (Form) และ Section 2 (Data Loading) ---
+# โดยใน Section 2 คุณจะเรียกใช้ load_public_data ได้ปกติแล้ว เพราะเราประกาศไว้ที่ข้อ 2 แล้วครับ
 
 # --- SECTION 1: QUICK TRANSACTION ENTRY ---
 with st.expander("➕ Quick Transaction Entry", expanded=True):
