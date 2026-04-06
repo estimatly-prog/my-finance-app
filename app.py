@@ -20,16 +20,24 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Setup Connection
-conn = st.connection("gsheets", type=GSheetsConnection)
+# 3. Setup Connection & Constants
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
+
+def load_public_data(url, gid):
+    try:
+        base_url = url.split('/edit')[0]
+        csv_url = f"{base_url}/export?format=csv&gid={gid}"
+        return pd.read_csv(csv_url)
+    except:
+        return pd.DataFrame()
 
 st.title("🧠 Financial Brain Pro")
 
-# เริ่มต้น Block ตรวจสอบการทำงาน
 try:
-    # 4. Data Loading (สังเกตการย่อหน้าด้านล่างนี้ ต้องตรงกันทั้งหมด)
-    df_expense = conn.read(ttl="5s")
-    df_portfolio = conn.read(worksheet="Portfolio", ttl="1m")
+    # 4. Data Loading - Hybrid Approach
+    # เราใช้การอ่านแบบ Public (GID) เพื่อความชัวร์ว่ากราฟจะขึ้นแน่นอน
+    df_expense = load_public_data(SHEET_URL, "0") 
+    df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
     # Data Cleaning Logic
     for df in [df_expense, df_portfolio]:
@@ -55,18 +63,25 @@ try:
                 
             if submitted:
                 if amount > 0:
-                    new_data = pd.DataFrame([{
-                        "Date": date.strftime("%Y-%m-%d"),
-                        "Category": category,
-                        "Amount": amount,
-                        "Note": note,
-                        "Payment_Method": payment
-                    }])
-                    updated_df = pd.concat([df_expense, new_data], ignore_index=True)
-                    conn.update(worksheet="Expenses", data=updated_df)
-                    st.success("Transaction Saved Successfully!")
-                    st.balloons()
-                    st.rerun()
+                    try:
+                        # การเขียน (Update) จะใช้ Connection จาก Secrets
+                        conn = st.connection("gsheets", type=GSheetsConnection)
+                        new_data = pd.DataFrame([{
+                            "Date": date.strftime("%Y-%m-%d"),
+                            "Category": category,
+                            "Amount": amount,
+                            "Note": note,
+                            "Payment_Method": payment
+                        }])
+                        # ดึงข้อมูลปัจจุบันมาต่อท้าย
+                        current_df = conn.read(worksheet="Expenses")
+                        updated_df = pd.concat([current_df, new_data], ignore_index=True)
+                        conn.update(worksheet="Expenses", data=updated_df)
+                        st.success("Transaction Saved!")
+                        st.balloons()
+                        st.rerun()
+                    except Exception as save_error:
+                        st.error(f"Save Failed: {save_error}")
                 else:
                     st.error("Please enter an amount.")
 
@@ -78,11 +93,9 @@ try:
     if not df_expense.empty:
         total_ex = float(df_expense['Amount'].sum())
         daily_avg = total_ex / 30
-        
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
         c2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
-        
         if total_ex > 0:
             top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
             c3.metric("Top Spending Category", str(top_cat))
@@ -91,32 +104,24 @@ try:
             st.markdown("#### Payment Methods Breakdown")
             pay_col1, pay_col2 = st.columns([1, 2])
             with pay_col1:
-                payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum()
-                st.dataframe(payment_summary, use_container_width=True)
+                st.dataframe(df_expense.groupby('Payment_Method')['Amount'].sum(), use_container_width=True)
             with pay_col2:
-                st.bar_chart(payment_summary)
+                st.bar_chart(df_expense.groupby('Payment_Method')['Amount'].sum())
 
     # Portfolio Wealth
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
     if not df_portfolio.empty:
         total_v = float(df_portfolio['Value'].sum())
-        
         p_col1, p_col2 = st.columns([1, 2])
         with p_col1:
             st.metric("Total Net Worth", f"{total_v:,.2f} THB")
-            st.write("**Asset Allocation**")
             st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True)
         with p_col2:
-            if 'Asset_Name' in df_portfolio.columns:
-                chart_data = df_portfolio.set_index('Asset_Name')['Value']
-                st.area_chart(chart_data)
+            st.area_chart(df_portfolio.set_index('Asset_Name')['Value'])
 
-# นี่คือส่วนที่หายไป (except block) ซึ่งเป็นสาเหตุของ Error
 except Exception as e:
-    st.error("⚠️ System Error")
-    st.write(f"Details: {e}")
-    st.info("Check: 1. Secrets Setup 2. Google Sheets Tab Names 3. Editor Permission")
+    st.error(f"Dashboard Error: {e}")
 
 st.markdown("---")
 st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
