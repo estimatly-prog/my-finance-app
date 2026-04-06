@@ -28,7 +28,17 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
             date = st.date_input("Date", datetime.now())
             category = st.selectbox("Category", ["Food", "Beverage", "Dessert", "Transport", "Shopping", "Investment", "Bills", "Movie", "Video Game", "Music", "Others"])
         with col_f2:
-            amount = st.number_input("Amount (THB)", min_value=0.0, step=1.0)
+            # เปลี่ยนเป็น text_input เพื่อให้เป็นช่องว่างได้
+            amount_str = st.text_input("Amount (THB)", value="", placeholder="กรอกจำนวนเงิน...")
+            
+            # แปลงค่าจาก String เป็น Float เพื่อเอาไปคำนวณหรือบันทึก
+            try:
+                amount = float(amount_str.replace(',', '')) if amount_str else 0.0
+            except ValueError:
+                amount = 0.0
+                if amount_str: # ถ้าพิมพ์อะไรที่ไม่ใช่ตัวเลข
+                    st.warning("⚠️ กรุณากรอกเฉพาะตัวเลขครับ")
+
             payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Cash"])
         with col_f3:
             note = st.text_input("Note (Optional)")
