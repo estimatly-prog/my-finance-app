@@ -1,69 +1,61 @@
 import streamlit as st
 import pandas as pd
 
-# 1. ตั้งค่าหน้าเว็บและ Dark Theme เบื้องต้น
+# 1. Page Configuration: Setting a professional title and wide layout
 st.set_page_config(
-    page_title="The Financial Brain | Dark Edition",
+    page_title="Financial Brain | Analytics Dashboard",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ปรับ CSS ให้เป็นธีมดาร์กแบบหรู (Custom Dark Minimalist)
+# 2. Custom CSS for Minimalist Dark Theme
 st.markdown("""
     <style>
-    .main { background-color: #0E1117; color: #E0E0E0; }
-    .stMetric { background-color: #161B22; padding: 15px; border-radius: 10px; border: 1px solid #30363D; }
+    .main { background-color: #0E1117; }
+    div[data-testid="stMetric"] {
+        background-color: #161B22;
+        border: 1px solid #30363D;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .stHeader { color: #58A6FF; }
     </style>
     """, unsafe_allow_html=True)
 
+# 3. Data Loading Function with Google Sheets CSV Export logic
 def load_data(sheet_url, gid):
     base_url = sheet_url.split('/edit')[0]
     csv_url = f"{base_url}/export?format=csv&gid={gid}"
     return pd.read_csv(csv_url)
 
+# Your Google Sheets URL
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
-st.title("🌑 The Financial Brain: Dark Edition")
+st.title("🧠 Financial Brain Pro")
+st.markdown("---")
 
 try:
+    # Fetching Data from Sheets (gid 0 for Expenses, 1218817484 for Portfolio)
     df_expense = load_data(SHEET_URL, "0") 
     df_portfolio = load_data(SHEET_URL, "1218817484")
 
-    # ล้างข้อมูลตัวเลข
+    # Data Cleaning: Removing commas and converting to numeric values
     for df in [df_expense, df_portfolio]:
-        col = 'Amount' if 'Amount' in df.columns else 'Value'
-        df[col] = df[col].astype(str).str.replace(',', '').str.strip()
-        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        target_col = 'Amount' if 'Amount' in df.columns else 'Value'
+        df[target_col] = df[target_col].astype(str).str.replace(',', '').str.strip()
+        df[target_col] = pd.to_numeric(df[target_col], errors='coerce').fillna(0)
 
-    # --- ส่วนที่ 1: Expense & Payment Insight ---
-    st.header("💳 Expense & Payment Analysis")
-    
+    # --- SECTION 1: EXPENSE ANALYTICS ---
+    st.subheader("💳 Spending Analysis")
     total_ex = float(df_expense['Amount'].sum())
+    daily_avg = total_ex / 30
     
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Total Expenses", f"{total_ex:,.2f} THB")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
+    col2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
     
-    # คำนวณ Insight การจ่ายเงิน (Payment Method)
-    if 'Payment_Method' in df_expense.columns:
-        payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum()
-        top_payment = payment_summary.idxmax()
-        c2.metric("Primary Payment", top_payment)
-        
-        with st.expander("🔍 เจาะลึกการใช้บัตรเครดิตและพร้อมเพย์"):
-            st.write("สรุปยอดแบ่งตามวิธีชำระเงิน:")
-            st.bar_chart(payment_summary)
-    
-    # --- ส่วนที่ 2: Portfolio Health ---
-    st.divider()
-    st.header("📈 Portfolio Performance")
-    total_v = float(df_portfolio['Value'].sum())
-    
-    col_p1, col_p2 = st.columns([1, 2])
-    with col_p1:
-        st.metric("Net Worth", f"{total_v:,.2f} THB")
-        st.dataframe(df_portfolio, use_container_width=True)
-    with col_p2:
-        st.area_chart(df_portfolio.set_index('Asset_Name')['Value']) # เปลี่ยนเป็น Area Chart ให้ดู Modern ขึ้น
-
-except Exception as e:
-    st.error(f"Error: {e}")
+    # Logic for Top Spending Category
+    if not df_expense.empty and total_ex > 0:
+        top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
+        col3.metric("Top Spending Category", top_cat)
