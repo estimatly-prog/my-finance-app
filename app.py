@@ -1,77 +1,53 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from streamlit_gsheets import GSheetsConnection
 
 # 1. Page Configuration
-st.set_page_config(
-    page_title="Financial Brain Pro | All-in-One",
-    page_icon="🧠",
-    layout="wide"
-)
+st.set_page_config(page_title="Financial Brain Pro", page_icon="🧠", layout="wide")
 
-# 2. Professional Dark Theme CSS
-st.markdown("""
-    <style>
-    .main { background-color: #0E1117; }
-    div[data-testid="stMetric"] {
-        background-color: #161B22;
-        border: 1px solid #30363D;
-        padding: 15px;
-        border-radius: 10px;
-    }
-    .stButton>button { 
-        width: 100%; 
-        border-radius: 5px; 
-        background-color: #238636; 
-        color: white; 
-        font-weight: bold;
-    }
-    header, .stMarkdown { color: #E0E0E0; }
-    </style>
-    """, unsafe_allow_html=True)
+# 2. Setup Connection
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 3. Data Loading Function
-def load_data(sheet_url, gid):
-    try:
-        base_url = sheet_url.split('/edit')[0]
-        csv_url = f"{base_url}/export?format=csv&gid={gid}"
-        return pd.read_csv(csv_url)
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        return pd.DataFrame()
-
-# Your Google Sheets URL
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
-
-st.title("🧠 Financial Brain Pro")
+# 3. Data Loading (Read current data)
+# Note: We use the connection to read so we can write back easily
+df_expense = conn.read(worksheet="Expenses", ttl=5) # ttl=5 means refresh every 5 sec
+df_portfolio = conn.read(worksheet="Portfolio", ttl=60)
 
 # --- SECTION 1: QUICK TRANSACTION ENTRY ---
+st.title("🧠 Financial Brain Pro")
+
 with st.expander("➕ Quick Transaction Entry", expanded=True):
     with st.form("entry_form", clear_on_submit=True):
         col_f1, col_f2, col_f3 = st.columns(3)
-        
         with col_f1:
             date = st.date_input("Date", datetime.now())
             category = st.selectbox("Category", ["Food", "Transport", "Shopping", "Investment", "Bills", "Others"])
-        
         with col_f2:
             amount = st.number_input("Amount (THB)", min_value=0.0, step=1.0)
             payment = st.selectbox("Payment Method", ["PromptPay", "Credit: KTC", "Credit: SCB", "Cash"])
-            
         with col_f3:
             note = st.text_input("Note (Optional)")
             submitted = st.form_submit_button("Save Transaction")
             
         if submitted:
             if amount > 0:
-                # This is a placeholder. Real saving requires 'Secrets' setup.
-                st.success(f"Form Validated: {amount} THB recorded. (Proceed to Secrets Setup for Real Sync)")
+                # Create new row
+                new_data = pd.DataFrame([{
+                    "Date": date.strftime("%Y-%m-%d"),
+                    "Category": category,
+                    "Amount": amount,
+                    "Note": note,
+                    "Payment_Method": payment
+                }])
+                # Combine and Update
+                updated_df = pd.concat([df_expense, new_data], ignore_index=True)
+                conn.update(worksheet="Expenses", data=updated_df)
+                st.success("Transaction Saved Successfully!")
                 st.balloons()
+                st.rerun() # Refresh to see new data
             else:
                 st.error("Please enter an amount.")
-
-st.markdown("---")
-
 # --- SECTION 2: ANALYTICS DASHBOARD ---
 try:
     df_expense = load_data(SHEET_URL, "0") 
