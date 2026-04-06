@@ -25,13 +25,11 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 st.title("🧠 Financial Brain Pro")
 
+# เริ่มต้น Block ตรวจสอบการทำงาน
 try:
-    # 4. Data Loading (Using connection for both reading and writing)
-    # Ensure worksheet names match exactly with your Google Sheets tabs
+    # 4. Data Loading (สังเกตการย่อหน้าด้านล่างนี้ ต้องตรงกันทั้งหมด)
     df_expense = conn.read(worksheet="Expenses", ttl="5s") 
     df_portfolio = conn.read(worksheet="Portfolio", ttl="1m")
-df_expense = conn.read(ttl="5s") # มันจะอ่าน Tab แรกสุดของไฟล์มาให้
-st.write("Debug: Connection successful, found data!", df_expense.head())
 
     # Data Cleaning Logic
     for df in [df_expense, df_portfolio]:
@@ -54,7 +52,7 @@ st.write("Debug: Connection successful, found data!", df_expense.head())
             with col_f3:
                 note = st.text_input("Note (Optional)")
                 submitted = st.form_submit_button("Save Transaction")
-
+                
             if submitted:
                 if amount > 0:
                     new_data = pd.DataFrame([{
@@ -74,20 +72,20 @@ st.write("Debug: Connection successful, found data!", df_expense.head())
 
     # --- SECTION 2: ANALYTICS DASHBOARD ---
     st.markdown("---")
-
+    
     # Spending Analysis
     st.subheader("💳 Spending Analysis")
     if not df_expense.empty:
         total_ex = float(df_expense['Amount'].sum())
         daily_avg = total_ex / 30
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
-        col2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
-
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
+        c2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
+        
         if total_ex > 0:
             top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
-            col3.metric("Top Spending Category", str(top_cat))
+            c3.metric("Top Spending Category", str(top_cat))
 
         if 'Payment_Method' in df_expense.columns:
             st.markdown("#### Payment Methods Breakdown")
@@ -103,7 +101,7 @@ st.write("Debug: Connection successful, found data!", df_expense.head())
     st.subheader("📈 Portfolio Wealth")
     if not df_portfolio.empty:
         total_v = float(df_portfolio['Value'].sum())
-
+        
         p_col1, p_col2 = st.columns([1, 2])
         with p_col1:
             st.metric("Total Net Worth", f"{total_v:,.2f} THB")
@@ -114,32 +112,11 @@ st.write("Debug: Connection successful, found data!", df_expense.head())
                 chart_data = df_portfolio.set_index('Asset_Name')['Value']
                 st.area_chart(chart_data)
 
+# นี่คือส่วนที่หายไป (except block) ซึ่งเป็นสาเหตุของ Error
 except Exception as e:
-    st.error("⚠️ Connection or System Error")
+    st.error("⚠️ System Error")
     st.write(f"Details: {e}")
-    st.info("Double-check your Secrets and Worksheet names (Expenses/Portfolio)")
+    st.info("Check: 1. Secrets Setup 2. Google Sheets Tab Names 3. Editor Permission")
 
 st.markdown("---")
 st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
-
-st.title("🧠 Financial Brain Pro")
-
-try:
-    # 4. Data Loading - สังเกตการย่อหน้า (ต้องมี Space ข้างหน้า)
-    df_expense = conn.read(worksheet="Expenses", ttl="5s") 
-    df_portfolio = conn.read(worksheet="Portfolio", ttl="1m")
-
-    # Data Cleaning Logic - ต้องย่อหน้าให้ตรงกัน
-    for df in [df_expense, df_portfolio]:
-        if not df.empty:
-            target_col = 'Amount' if 'Amount' in df.columns else 'Value'
-            if target_col in df.columns:
-                df[target_col] = df[target_col].astype(str).str.replace(',', '').str.strip()
-                df[target_col] = pd.to_numeric(df[target_col], errors='coerce').fillna(0)
-
-    # --- SECTION 1: QUICK TRANSACTION ENTRY ---
-    with st.expander("➕ Quick Transaction Entry", expanded=True):
-        # ... (โค้ดส่วน Form ทั้งหมดต้องย่อหน้าเข้ามา) ...
-        with st.form("entry_form", clear_on_submit=True):
-            # โค้ดภายใน Form...
-            # (ผมแนะนำให้ก๊อปปี้จากไฟล์เต็มด้านล่างครับ)
