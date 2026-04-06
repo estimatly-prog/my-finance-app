@@ -38,7 +38,11 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
             if amount > 0:
                 try:
                     conn = st.connection("gsheets", type=GSheetsConnection)
+                    
+                    # 1. อ่านข้อมูลเดิมมาเพื่อดูโครงสร้าง (ป้องกันการเขียนทับที่ผิดพลาด)
                     current_df = conn.read(worksheet="Expenses")
+                    
+                    # 2. สร้าง DataFrame สำหรับแถวใหม่
                     new_row = pd.DataFrame([{
                         "Date": date.strftime("%Y-%m-%d"),
                         "Category": category,
@@ -46,8 +50,14 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
                         "Note": note,
                         "Payment_Method": payment
                     }])
+                    
+                    # 3. รวมร่างข้อมูล (ต้องมั่นใจว่า Column ตรงกันเป๊ะ)
+                    # เราจะใช้ ignore_index=True เพื่อให้มันเรียงลำดับใหม่ ไม่ไปทับ Index เดิม
                     updated_df = pd.concat([current_df, new_row], ignore_index=True)
+                    
+                    # 4. อัปเดตกลับไป (ย้ำว่าต้องระบุ worksheet ให้ชัดเจน)
                     conn.update(worksheet="Expenses", data=updated_df)
+                    
                     st.success("Transaction Saved Successfully!")
                     st.balloons()
                     st.rerun()
