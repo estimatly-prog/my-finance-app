@@ -64,3 +64,29 @@ try:
 
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาด: {e}")
+
+# --- ส่วนที่ 3: Financial Future (ส่วนที่ฉลาดที่สุด) ---
+    st.divider()
+    st.header("🔮 Financial Future Prediction")
+    
+    # คำนวณเงินออมเฉลี่ย (รายได้ - รายจ่าย) 
+    # สมมติรายได้นิ่งๆ ไว้ก่อน หรือดึงจาก Sheet ก็ได้
+    monthly_income = st.number_input("ระบุรายได้เฉลี่ยต่อเดือนของคุณ (บาท)", value=50000)
+    monthly_savings = monthly_income - total_ex
+    
+    col_f1, col_f2 = st.columns(2)
+    
+    with col_f1:
+        st.write(f"💰 **เงินออมคาดการณ์:** {monthly_savings:,.2f} บาท/เดือน")
+        if monthly_savings > 0:
+            years_to_million = 1000000 / (monthly_savings * 12)
+            st.success(f"คุณจะเก็บเงินครบ 1 ล้านบาท ภายใน **{years_to_million:.1f} ปี**")
+        else:
+            st.warning("⚠️ รายจ่ายสูงกว่ารายได้ รีบปรับแผนการเงินด่วนครับ!")
+
+    with col_f2:
+        # วิเคราะห์ปันผล (กรณีมีหุ้นปันผลอย่าง TISCO)
+        st.write("⚓ **Passive Income Check**")
+        dividend_rate = st.slider("คาดการณ์ปันผลเฉลี่ยของพอร์ต (%)", 0, 10, 5)
+        annual_div = total_v * (dividend_rate / 100)
+        st.info(f"พอร์ตนี้จะสร้างเงินปันผลให้คุณปีละ **{annual_div:,.2f} บาท** (เฉลี่ยเดือนละ {annual_div/12:,.2f} บาท)")
