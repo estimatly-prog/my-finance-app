@@ -64,18 +64,15 @@ try:
     df_raw = load_public_data(SHEET_URL, "0") 
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
-    # 2. Data Cleaning
+    # 2. Data Cleaning - Expenses
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-        # 3. Sidebar Filter (FIXED: แก้ไขเรื่อง ArrowStringArray sort)
-        # ดึงรายชื่อเดือนออกมา แปลงเป็น List แล้วค่อย Sort
+        # 3. Sidebar Filter
         month_list = df_raw['Date'].dt.strftime('%Y-%m').unique().tolist()
-        month_list.sort(reverse=True) # เรียงจากใหม่ไปเก่า
-        
+        month_list.sort(reverse=True)
         selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
-        
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
         
         # 4. Dashboard Metrics
@@ -113,14 +110,24 @@ try:
             hide_index=True
         )
 
-    # Portfolio Section
+    # --- SECTION 4: PORTFOLIO WEALTH (FIXED) ---
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
     if not df_portfolio.empty:
+        # ทำความสะอาดข้อมูล Portfolio
         df_portfolio['Value'] = pd.to_numeric(df_portfolio['Value'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         total_v = float(df_portfolio['Value'].sum())
-        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
-        st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True, hide_index=True)
+        
+        p_col1, p_col2 = st.columns([1, 2])
+        with p_col1:
+            st.metric("Total Net Worth", f"{total_v:,.2f} THB")
+            st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True, hide_index=True)
+        
+        with p_col2:
+            # สร้างกราฟพื้นที่โดยใช้ Asset_Name เป็นแกน X และ Value เป็นแกน Y
+            if 'Asset_Name' in df_portfolio.columns and 'Value' in df_portfolio.columns:
+                chart_data = df_portfolio.set_index('Asset_Name')['Value']
+                st.area_chart(chart_data)
 
 except Exception as e:
     st.error(f"Dashboard Error: {e}")
