@@ -86,23 +86,7 @@ try:
     df_portfolio = load_public_data(SHEET_URL, "1218817484") # Portfolio
     df_budget = load_public_data(SHEET_URL, "2055623351") # Budget
     df_goals = load_public_data(SHEET_URL, "1271566138")  # Goals
-
-    # --- [NEW] SECTION: SAVINGS GOAL TRACKER ---
-    if not df_goals.empty:
-        st.subheader("🎯 Savings & Financial Goals")
-        goal_cols = st.columns(len(df_goals))
-        
-        for i, row in df_goals.iterrows():
-            with goal_cols[i % len(df_goals)]:
-                name = row['Goal_Name']
-                target = float(str(row['Target_Amount']).replace(',', ''))
-                current = float(str(row['Current_Saved']).replace(',', ''))
-                progress = min(current / target, 1.0) if target > 0 else 0
-                
-                st.metric(name, f"{current:,.0f} / {target:,.0f} THB", f"{progress*100:.1f}%")
-                st.progress(progress)
-        st.markdown("---")
-
+    
     # --- ANALYTICS DASHBOARD ---
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
@@ -171,7 +155,23 @@ try:
             use_container_width=True,
             hide_index=True
         )
+
+    # --- [NEW] SECTION: SAVINGS GOAL TRACKER ---
+    if not df_goals.empty:
+        st.subheader("🎯 Savings & Financial Goals")
+        goal_cols = st.columns(len(df_goals))
+        
+        for i, row in df_goals.iterrows():
+            with goal_cols[i % len(df_goals)]:
+                name = row['Goal_Name']
+                target = float(str(row['Target_Amount']).replace(',', ''))
+                current = float(str(row['Current_Saved']).replace(',', ''))
+                progress = min(current / target, 1.0) if target > 0 else 0
                 
+                st.metric(name, f"{current:,.0f} / {target:,.0f} THB", f"{progress*100:.1f}%")
+                st.progress(progress)
+        st.markdown("---")
+        
     # Portfolio Section
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
