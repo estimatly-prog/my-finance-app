@@ -15,6 +15,18 @@ def load_public_data(url, gid):
         base_url = url.split('/edit')[0]
         csv_url = f"{base_url}/export?format=csv&gid={gid}"
         return pd.read_csv(csv_url)
+        
+# --- SECTION 3: RECENT TRANSACTIONS ---
+    st.markdown("---")
+    st.subheader("📜 Recent Transactions")
+    if not df_filtered.empty:
+        # เรียงลำดับตามวันที่ล่าสุด และเลือกมาเฉพาะคอลัมน์ที่สำคัญ
+        recent_df = df_filtered.sort_values(by='Date', ascending=False)
+        st.dataframe(
+            recent_df[['Date', 'Category', 'Amount', 'Payment_Method', 'Note']], 
+            use_container_width=True,
+            hide_index=True
+        )
     except:
         return pd.DataFrame()
 
