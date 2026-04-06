@@ -37,13 +37,15 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
         if submitted:
             if amount > 0:
                 try:
+                    # 1. เชื่อมต่อ GSheets
                     conn = st.connection("gsheets", type=GSheetsConnection)
                     
-                    # 1. อ่านข้อมูลเดิมมาเพื่อดูโครงสร้าง (ป้องกันการเขียนทับที่ผิดพลาด)
-                    current_df = conn.read(worksheet="Expenses")
+                    # 2. อ่านข้อมูล "ทั้งหมด" ที่มีอยู่ใน Sheets ตอนนี้ออกมาก่อน
+                    # บรรทัดนี้สำคัญมาก เพื่อให้เรารู้ว่าบรรทัดล่าสุดอยู่ที่ไหน
+                    existing_data = conn.read(worksheet="Expenses", ttl=0) # ttl=0 เพื่อไม่ให้ใช้แคชเก่า
                     
-                    # 2. สร้าง DataFrame สำหรับแถวใหม่
-                    new_row = pd.DataFrame([{
+                    # 3. เตรียมข้อมูลใหม่
+                    new_entry = pd.DataFrame([{
                         "Date": date.strftime("%Y-%m-%d"),
                         "Category": category,
                         "Amount": amount,
@@ -51,20 +53,20 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
                         "Payment_Method": payment
                     }])
                     
-                    # 3. รวมร่างข้อมูล (ต้องมั่นใจว่า Column ตรงกันเป๊ะ)
-                    # เราจะใช้ ignore_index=True เพื่อให้มันเรียงลำดับใหม่ ไม่ไปทับ Index เดิม
-                    updated_df = pd.concat([current_df, new_row], ignore_index=True)
+                    # 4. เอาข้อมูลใหม่ไป "ต่อตูด" ข้อมูลเก่า (Concat)
+                    # ใช้ ignore_index=True เพื่อป้องกัน Index ซ้ำจนมันเขียนทับที่เดิม
+                    updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
                     
-                    # 4. อัปเดตกลับไป (ย้ำว่าต้องระบุ worksheet ให้ชัดเจน)
+                    # 5. เขียนกลับไปทั้งหมด (คราวนี้มันจะยาวขึ้นเรื่อยๆ ไม่ทับที่เดิม)
                     conn.update(worksheet="Expenses", data=updated_df)
                     
-                    st.success("Transaction Saved Successfully!")
+                    st.success("บันทึกสำเร็จ! ข้อมูลถูกต่อท้ายเรียบร้อย")
                     st.balloons()
                     st.rerun()
                 except Exception as save_error:
-                    st.error(f"Save Failed: {save_error}")
+                    st.error(f"เกิดข้อผิดพลาดในการบันทึก: {save_error}")
             else:
-                st.error("Please enter an amount.")
+                st.error("กรุณาใส่จำนวนเงินด้วยครับ")
 
 st.markdown("---")
 
