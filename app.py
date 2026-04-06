@@ -89,4 +89,7 @@ try:
 
 except Exception as e:
     st.error(f"System Error: {e}")
-    st.info("Check: 1. Column headers (Case Sensitive) 2
+    st.info("Check: 1. Column headers (Case Sensitive) 2. GID numbers 3. Sheet sharing settings.")
+
+st.markdown("---")
+st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
