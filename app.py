@@ -29,7 +29,7 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
             category = st.selectbox("Category", ["Food", "Beverage", "Dessert", "Transport", "Shopping", "Investment", "Bills", "Movie", "Video Game", "Music", "Others"])
         with col_f2:
             # เปลี่ยนเป็น text_input เพื่อให้เป็นช่องว่างได้
-            amount_str = st.text_input("Amount (THB)", value="", placeholder="กรอกจำนวนเงิน...")
+            amount_str = st.text_input("Amount (THB)", value="", placeholder="fill amount...")
             
             # แปลงค่าจาก String เป็น Float เพื่อเอาไปคำนวณหรือบันทึก
             try:
