@@ -67,4 +67,26 @@ try:
         pay_col1, pay_col2 = st.columns([1, 2])
         with pay_col1:
             payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum()
-            st.dataframe(payment_summary,
+            st.dataframe(payment_summary, use_container_width=True)
+        with pay_col2:
+            st.bar_chart(payment_summary)
+
+    # --- SECTION 2: PORTFOLIO PERFORMANCE ---
+    st.markdown("---")
+    st.subheader("📈 Portfolio Wealth")
+    total_v = float(df_portfolio['Value'].sum())
+    
+    p_col1, p_col2 = st.columns([1, 2])
+    with p_col1:
+        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
+        st.write("**Asset Allocation**")
+        st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True)
+        
+    with p_col2:
+        if not df_portfolio.empty:
+            chart_data = df_portfolio.set_index('Asset_Name')['Value']
+            st.area_chart(chart_data)
+
+except Exception as e:
+    st.error(f"System Error: {e}")
+    st.info("Check: 1. Column headers (Case Sensitive) 2
