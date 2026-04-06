@@ -4,21 +4,51 @@ from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 import plotly.express as px
 
-# 1. Page Configuration
-st.set_page_config(page_title="Financial Brain Pro", page_icon="🧠", layout="wide")
+# 1. NEW Page Configuration (ไอคอนใหม่บน Browser Tab)
+st.set_page_config(
+    page_title="VELO. | Money Intelligence", 
+    page_icon="🌑", 
+    layout="wide"
+)
 
-# 2. Setup Connection & Constants
+# 2. CUSTOM CSS: ยกระดับดีไซน์ให้ดูพรีเมียม (Font & Gradient)
+st.markdown("""
+    <style>
+    /* นำเข้าฟอนต์ Inter ที่แอปชั้นนำระดับโลกใช้ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* สไตล์ชื่อแอปแบบ Gradient */
+    .app-title {
+        font-size: 48px !important;
+        font-weight: 800 !important;
+        letter-spacing: -2px !important;
+        margin-bottom: 0px !important;
+        background: linear-gradient(90.13deg, #FFFFFF 0%, #717171 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* สไตล์คำบรรยายใต้ชื่อ */
+    .app-subtitle {
+        font-size: 14px !important;
+        color: #888888 !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase;
+        margin-bottom: 30px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. NEW Title Section
+st.markdown('<p class="app-title">VELO. 🌑</p>', unsafe_allow_html=True)
+st.markdown('<p class="app-subtitle">Strategic Intelligence & Spending Velocity</p>', unsafe_allow_html=True)
+
+# 4. Setup Connection & Constants (เหมือนเดิม)
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
-
-def load_public_data(url, gid):
-    try:
-        base_url = url.split('/edit')[0]
-        csv_url = f"{base_url}/export?format=csv&gid={gid}"
-        return pd.read_csv(csv_url)
-    except:
-        return pd.DataFrame()
-
-st.title("🧠 Financial Brain Pro")
 
 # --- SECTION 1: QUICK TRANSACTION ENTRY ---
 with st.expander("➕ Quick Transaction Entry", expanded=True):
