@@ -131,6 +131,17 @@ try:
                 
                 st.plotly_chart(fig, use_container_width=True)
 
+st.markdown("#### Spending Distribution (%)")
+fig_pie = px.pie(
+    df_expense, 
+    values='Amount', 
+    names='Category', 
+    hole=0.4,
+    color_discrete_sequence=px.colors.qualitative.Pastel,
+    template="plotly_dark"
+)
+st.plotly_chart(fig_pie, use_container_width=True)
+
     # Portfolio Wealth
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
