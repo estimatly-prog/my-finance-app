@@ -36,7 +36,13 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
         if submitted:
             if amount > 0:
                 try:
+                    # เรียกการเชื่อมต่อ
                     conn = st.connection("gsheets", type=GSheetsConnection)
+                    
+                    # 1. อ่านข้อมูลปัจจุบันที่มีอยู่ใน Sheets ออกมานิ่งๆ ก่อน
+                    current_df = conn.read(worksheet="Expenses")
+                    
+                    # 2. เตรียมข้อมูลใหม่ที่เราเพิ่งกรอก
                     new_data = pd.DataFrame([{
                         "Date": date.strftime("%Y-%m-%d"),
                         "Category": category,
@@ -44,9 +50,15 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
                         "Note": note,
                         "Payment_Method": payment
                     }])
-                    # Write to Google Sheets
-                    conn.create(worksheet="Expenses", data=new_data)
-                    st.success("Transaction Saved!")
+                    
+                    # 3. เอาข้อมูลใหม่ไป "ต่อตูด" (Append) ข้อมูลเก่า
+                    # เราใช้ verify_integrity=False เพื่อความลื่นไหล
+                    updated_df = pd.concat([current_df, new_data], ignore_index=True)
+                    
+                    # 4. ส่งข้อมูลที่รวมกันแล้วกลับไปทับที่เดิม (ใช้ update แทน create)
+                    conn.update(worksheet="Expenses", data=updated_df)
+                    
+                    st.success("Transaction Saved Successfully!")
                     st.balloons()
                     st.rerun()
                 except Exception as save_error:
