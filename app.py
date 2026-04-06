@@ -39,14 +39,14 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
                 try:
                     conn = st.connection("gsheets", type=GSheetsConnection)
                     current_df = conn.read(worksheet="Expenses")
-                    new_data = pd.DataFrame([{
+                    new_row = pd.DataFrame([{
                         "Date": date.strftime("%Y-%m-%d"),
                         "Category": category,
                         "Amount": amount,
                         "Note": note,
                         "Payment_Method": payment
                     }])
-                    updated_df = pd.concat([current_df, new_data], ignore_index=True)
+                    updated_df = pd.concat([current_df, new_row], ignore_index=True)
                     conn.update(worksheet="Expenses", data=updated_df)
                     st.success("Transaction Saved Successfully!")
                     st.balloons()
@@ -67,27 +67,22 @@ try:
     # 2. Data Cleaning
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
+        # ลบคอมม่าและแปลงเป็นตัวเลข
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-    # 3. Sidebar Filter
-    if not df_raw.empty:
+        # 3. Sidebar Filter (ทำหลังจากโหลด Data)
         month_list = df_raw['Date'].dt.strftime('%Y-%m').unique()
-        month_list.sort() # เรียงจากเก่าไปใหม่
-        selected_month = st.sidebar.selectbox("📅 Select Month", month_list[::-1]) # โชว์ล่าสุดก่อน
+        month_list.sort() 
+        selected_month = st.sidebar.selectbox("📅 Select Month", month_list[::-1]) # เอาเดือนล่าสุดขึ้นก่อน
         
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
-    else:
-        df_filtered = df_raw
-        selected_month = "No Data"
-
-    # 4. Dashboard Metrics
-    st.subheader(f"💳 Spending Analysis: {selected_month}")
-    if not df_filtered.empty:
+        
+        # 4. Dashboard Metrics
+        st.subheader(f"💳 Spending Analysis: {selected_month}")
         total_ex = float(df_filtered['Amount'].sum())
-        daily_avg = total_ex / 30
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Spend", f"{total_ex:,.2f} THB")
-        c2.metric("Daily Avg", f"{daily_avg:,.2f} THB")
+        c2.metric("Daily Avg", f"{total_ex/30:,.2f} THB")
         
         if total_ex > 0:
             top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
@@ -97,17 +92,17 @@ try:
         col_chart1, col_chart2 = st.columns(2)
         with col_chart1:
             st.markdown("#### Methods Breakdown")
-            payment_summary = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
-            fig_bar = px.bar(payment_summary, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=350)
+            pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
+            fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=350)
             st.plotly_chart(fig_bar, use_container_width=True)
         
         with col_chart2:
             st.markdown("#### Category Distribution")
-            cat_summary = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-            fig_pie = px.pie(cat_summary, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=350)
+            cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
+            fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=350)
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        # --- [NEW] SECTION 3: RECENT TRANSACTIONS ---
+        # --- SECTION 3: RECENT TRANSACTIONS ---
         st.markdown("---")
         st.subheader("📜 Recent Transactions (This Month)")
         recent_df = df_filtered.sort_values(by='Date', ascending=False)
