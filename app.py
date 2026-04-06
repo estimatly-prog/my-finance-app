@@ -15,18 +15,6 @@ def load_public_data(url, gid):
         base_url = url.split('/edit')[0]
         csv_url = f"{base_url}/export?format=csv&gid={gid}"
         return pd.read_csv(csv_url)
-        
-# --- SECTION 3: RECENT TRANSACTIONS ---
-    st.markdown("---")
-    st.subheader("📜 Recent Transactions")
-    if not df_filtered.empty:
-        # เรียงลำดับตามวันที่ล่าสุด และเลือกมาเฉพาะคอลัมน์ที่สำคัญ
-        recent_df = df_filtered.sort_values(by='Date', ascending=False)
-        st.dataframe(
-            recent_df[['Date', 'Category', 'Amount', 'Payment_Method', 'Note']], 
-            use_container_width=True,
-            hide_index=True
-        )
     except:
         return pd.DataFrame()
 
@@ -72,7 +60,7 @@ st.markdown("---")
 
 # --- SECTION 2: DATA LOADING & ANALYTICS ---
 try:
-    # 1. โหลดข้อมูลก่อน (ต้องทำก่อนทำ Filter)
+    # 1. Load Data
     df_raw = load_public_data(SHEET_URL, "0") 
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
@@ -81,19 +69,19 @@ try:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-    # 3. --- ADD FILTER SIDEBAR ---
+    # 3. Sidebar Filter
     if not df_raw.empty:
-        # สร้างรายการเดือนจากข้อมูลที่มี
-        month_list = df_raw['Date'].dt.strftime('%B %Y').unique()
-        selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
+        month_list = df_raw['Date'].dt.strftime('%Y-%m').unique()
+        month_list.sort() # เรียงจากเก่าไปใหม่
+        selected_month = st.sidebar.selectbox("📅 Select Month", month_list[::-1]) # โชว์ล่าสุดก่อน
         
-        # กรองข้อมูลเก็บไว้ใน df_filtered
-        df_filtered = df_raw[df_raw['Date'].dt.strftime('%B %Y') == selected_month]
+        df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
     else:
         df_filtered = df_raw
+        selected_month = "No Data"
 
-    # 4. Spending Analysis
-    st.subheader(f"💳 Spending Analysis: {selected_month if not df_raw.empty else ''}")
+    # 4. Dashboard Metrics
+    st.subheader(f"💳 Spending Analysis: {selected_month}")
     if not df_filtered.empty:
         total_ex = float(df_filtered['Amount'].sum())
         daily_avg = total_ex / 30
@@ -105,25 +93,29 @@ try:
             top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
             c3.metric("Top Category", str(top_cat))
 
-        # --- Row 1: Bar Chart ---
-        st.markdown("#### Payment Methods Breakdown")
-        payment_summary = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
-        fig_bar = px.bar(
-            payment_summary, x='Payment_Method', y='Amount',
-            color='Payment_Method', color_discrete_sequence=px.colors.qualitative.Pastel,
-            template="plotly_dark", height=350
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        # Charts Row
+        col_chart1, col_chart2 = st.columns(2)
+        with col_chart1:
+            st.markdown("#### Methods Breakdown")
+            payment_summary = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
+            fig_bar = px.bar(payment_summary, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=350)
+            st.plotly_chart(fig_bar, use_container_width=True)
+        
+        with col_chart2:
+            st.markdown("#### Category Distribution")
+            cat_summary = df_filtered.groupby('Category')['Amount'].sum().reset_index()
+            fig_pie = px.pie(cat_summary, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=350)
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-        # --- Row 2: Pie Chart ---
-        st.markdown("#### Spending Distribution (%)")
-        cat_summary = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-        fig_pie = px.pie(
-            cat_summary, values='Amount', names='Category',
-            hole=0.4, color_discrete_sequence=px.colors.qualitative.Pastel,
-            template="plotly_dark", height=400
+        # --- [NEW] SECTION 3: RECENT TRANSACTIONS ---
+        st.markdown("---")
+        st.subheader("📜 Recent Transactions (This Month)")
+        recent_df = df_filtered.sort_values(by='Date', ascending=False)
+        st.dataframe(
+            recent_df[['Date', 'Category', 'Amount', 'Payment_Method', 'Note']], 
+            use_container_width=True,
+            hide_index=True
         )
-        st.plotly_chart(fig_pie, use_container_width=True)
 
     # Portfolio Section
     st.markdown("---")
@@ -131,13 +123,8 @@ try:
     if not df_portfolio.empty:
         df_portfolio['Value'] = pd.to_numeric(df_portfolio['Value'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         total_v = float(df_portfolio['Value'].sum())
-        p_col1, p_col2 = st.columns([1, 2])
-        with p_col1:
-            st.metric("Total Net Worth", f"{total_v:,.2f} THB")
-            st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True)
-        with p_col2:
-            if 'Asset_Name' in df_portfolio.columns:
-                st.area_chart(df_portfolio.set_index('Asset_Name')['Value'])
+        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
+        st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True, hide_index=True)
 
 except Exception as e:
     st.error(f"Dashboard Error: {e}")
