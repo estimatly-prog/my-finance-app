@@ -5,7 +5,7 @@ from streamlit_gsheets import GSheetsConnection
 import plotly.express as px
 
 # 1. Page Configuration
-st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="🌑", layout="wide")
+st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
 
 # --- CUSTOM CSS (ความคูลระดับโลก) ---
 st.markdown("""
@@ -36,7 +36,7 @@ def load_public_data(url, gid):
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
 # 4. START UI
-st.markdown('<p class="app-title">VELO. 🌑</p>', unsafe_allow_html=True)
+st.markdown('<p class="app-title">VELO. 👻</p>', unsafe_allow_html=True)
 st.caption("STRATEGIC INTELLIGENCE & SPENDING VELOCITY")
 
 # --- หลังจากนี้ค่อยเป็น Section 1 (Form) และ Section 2 (Data Loading) ---
