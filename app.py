@@ -4,21 +4,17 @@ import pandas as pd
 # 1. ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="Financial Brain", layout="wide")
 
-# 2. ฟังก์ชันดึงข้อมูล (ปรับปรุงใหม่ให้ฉลาดขึ้น)
 def load_data(sheet_url, gid):
-    # ลบส่วนท้ายออกก่อนเพื่อความชัวร์ แล้วประกอบร่างใหม่เป็นลิงก์ Export CSV
     base_url = sheet_url.split('/edit')[0]
     csv_url = f"{base_url}/export?format=csv&gid={gid}"
     return pd.read_csv(csv_url)
 
-# URL ของคุณ (ผมใช้ตัวเดิมที่คุณส่งมา)
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
 st.title("🧠 The Financial Brain")
 
 try:
-    # ดึงข้อมูลจาก Tab
-    # อย่าลืม: เช็คว่าใน Sheet ของคุณ Tab แรก (gid=0) คือ Expenses ใช่ไหม
+    # ดึงข้อมูล
     df_expense = load_data(SHEET_URL, "0") 
     df_portfolio = load_data(SHEET_URL, "1218817484")
 
@@ -26,38 +22,45 @@ try:
     st.header("💳 Expense Insight")
     
     if not df_expense.empty:
-        total_expense = df_expense['Amount'].sum()
-        avg_per_day = total_expense / 30
+        # แปลง Amount เป็นตัวเลข และลบค่าที่แสดงผลไม่ได้ออก
+        df_expense['Amount'] = pd.to_numeric(df_expense['Amount'], errors='coerce').fillna(0)
+        
+        # คำนวณเป็นตัวเลขเพียวๆ ก่อน
+        total_ex = float(df_expense['Amount'].sum())
+        avg_ex = float(total_ex / 30)
         
         c1, c2, c3 = st.columns(3)
-        c1.metric("ยอดจ่ายรวมเดือนนี้", f"{total_expense:,.2f} บาท")
-        c2.metric("เฉลี่ยจ่ายรายวัน", f"{avg_per_day:,.2f} บาท")
+        c1.metric("ยอดจ่ายรวมเดือนนี้", f"{total_ex:,.2f} บาท")
+        c2.metric("เฉลี่ยจ่ายรายวัน", f"{avg_ex:,.2f} บาท")
         
-        # ป้องกันกรณีไม่มีข้อมูล Category
-        if 'Category' in df_expense.columns:
+        if 'Category' in df_expense.columns and total_ex > 0:
             top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
-            c3.metric("รายการที่จ่ายหนักสุด", top_cat)
+            c3.metric("รายการที่จ่ายหนักสุด", str(top_cat))
     else:
-        st.info("ยังไม่มีข้อมูลรายจ่ายใน Google Sheets")
+        st.info("ยังไม่มีข้อมูลรายจ่าย")
 
     # --- ส่วนที่ 2: Insight ทรัพย์สิน ---
     st.divider()
     st.header("📈 Portfolio Health")
     
     if not df_portfolio.empty:
-        total_value = df_portfolio['Value'].sum()
+        # แปลง Value เป็นตัวเลข
+        df_portfolio['Value'] = pd.to_numeric(df_portfolio['Value'], errors='coerce').fillna(0)
+        
+        # คำนวณเป็นตัวเลขเพียวๆ
+        total_v = float(df_portfolio['Value'].sum())
         
         col_p1, col_p2 = st.columns([1, 2])
         with col_p1:
-            st.metric("มูลค่าพอร์ตรวม", f"{total_value:,.2f} บาท")
+            st.metric("มูลค่าพอร์ตรวม", f"{total_v:,.2f} บาท")
             st.dataframe(df_portfolio, use_container_width=True)
             
         with col_p2:
-            st.bar_chart(df_portfolio.set_index('Asset_Name')['Value'])
+            # มั่นใจว่า Value เป็นตัวเลขก่อนวาดกราฟ
+            chart_data = df_portfolio.set_index('Asset_Name')['Value']
+            st.bar_chart(chart_data)
     else:
-        st.info("ยังไม่มีข้อมูลพอร์ตใน Google Sheets")
+        st.info("ยังไม่มีข้อมูลพอร์ต")
 
 except Exception as e:
-    # ส่วนนี้จะบอกเราว่า "พังเพราะอะไร"
-    st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อ: {e}")
-    st.info("จุดที่ควรเช็ค:\n1. ชื่อ Column ใน Sheets สะกดตรงไหม (Date, Category, Amount, Asset_Name, Value)?\n2. เลข gid ถูกต้องตาม Tab ไหม?\n3. ลืมใส่ข้อมูลลงในแถวแรกๆ หรือเปล่า?")
+    st.error(f"เกิดข้อผิดพลาด: {e}")
