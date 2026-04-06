@@ -61,29 +61,29 @@ try:
                 note = st.text_input("Note (Optional)")
                 submitted = st.form_submit_button("Save Transaction")
                 
-            if submitted:
+if submitted:
                 if amount > 0:
                     try:
-                        # การเขียน (Update) จะใช้ Connection จาก Secrets
                         conn = st.connection("gsheets", type=GSheetsConnection)
-                        new_data = pd.DataFrame([{
-                            "Date": date.strftime("%Y-%m-%d"),
-                            "Category": category,
-                            "Amount": amount,
-                            "Note": note,
-                            "Payment_Method": payment
-                        }])
-                        # ดึงข้อมูลปัจจุบันมาต่อท้าย
-                        current_df = conn.read(worksheet="Expenses")
-                        updated_df = pd.concat([current_df, new_data], ignore_index=True)
-                        conn.update(worksheet="Expenses", data=updated_df)
+                        
+                        # สร้างข้อมูลใหม่
+                        new_row = {
+                            "Date": [date.strftime("%Y-%m-%d")],
+                            "Category": [category],
+                            "Amount": [amount],
+                            "Note": [note],
+                            "Payment_Method": [payment]
+                        }
+                        new_df = pd.DataFrame(new_row)
+                        
+                        # ลองใช้วิธี append (ต่อท้าย) แทนการ concat เอง
+                        conn.create(worksheet="Expenses", data=new_df)
+                        
                         st.success("Transaction Saved!")
                         st.balloons()
                         st.rerun()
                     except Exception as save_error:
                         st.error(f"Save Failed: {save_error}")
-                else:
-                    st.error("Please enter an amount.")
 
     # --- SECTION 2: ANALYTICS DASHBOARD ---
     st.markdown("---")
