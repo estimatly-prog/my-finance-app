@@ -58,45 +58,42 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
 
 st.markdown("---")
 
-# --- ADD FILTER SIDEBAR ---
-if not df_filtered.empty:
-    df_filtered['Date'] = pd.to_datetime(df_filtered['Date'])
-    month_list = df_filtered['Date'].dt.strftime('%B %Y').unique()
-    selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
-    
-    # กรองข้อมูลตามเดือนที่เลือก
-    df_filtered = df_filtered[df_filtered['Date'].dt.strftime('%B %Y') == selected_month]
-else:
-    df_filtered = df_filtered
-    
-# --- SECTION 2: ANALYTICS DASHBOARD ---
+# --- SECTION 2: DATA LOADING & ANALYTICS ---
 try:
-    # Load data for charts
-    df_filtered = load_public_data(SHEET_URL, "0") 
+    # 1. โหลดข้อมูลก่อน (ต้องทำก่อนทำ Filter)
+    df_raw = load_public_data(SHEET_URL, "0") 
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
-    # Data Cleaning
-    for df in [df_filtered, df_portfolio]:
-        if not df.empty:
-            target_col = 'Amount' if 'Amount' in df.columns else 'Value'
-            if target_col in df.columns:
-                df[target_col] = df[target_col].astype(str).str.replace(',', '').str.strip()
-                df[target_col] = pd.to_numeric(df[target_col], errors='coerce').fillna(0)
+    # 2. Data Cleaning
+    if not df_raw.empty:
+        df_raw['Date'] = pd.to_datetime(df_raw['Date'])
+        df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-    # Spending Analysis
-    st.subheader("💳 Spending Analysis")
+    # 3. --- ADD FILTER SIDEBAR ---
+    if not df_raw.empty:
+        # สร้างรายการเดือนจากข้อมูลที่มี
+        month_list = df_raw['Date'].dt.strftime('%B %Y').unique()
+        selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
+        
+        # กรองข้อมูลเก็บไว้ใน df_filtered
+        df_filtered = df_raw[df_raw['Date'].dt.strftime('%B %Y') == selected_month]
+    else:
+        df_filtered = df_raw
+
+    # 4. Spending Analysis
+    st.subheader(f"💳 Spending Analysis: {selected_month if not df_raw.empty else ''}")
     if not df_filtered.empty:
         total_ex = float(df_filtered['Amount'].sum())
         daily_avg = total_ex / 30
         c1, c2, c3 = st.columns(3)
-        c1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
-        c2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
+        c1.metric("Total Spend", f"{total_ex:,.2f} THB")
+        c2.metric("Daily Avg", f"{daily_avg:,.2f} THB")
         
         if total_ex > 0:
             top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
-            c3.metric("Top Spending Category", str(top_cat))
+            c3.metric("Top Category", str(top_cat))
 
-        # --- Row 1: Bar Chart (Payment Methods) ---
+        # --- Row 1: Bar Chart ---
         st.markdown("#### Payment Methods Breakdown")
         payment_summary = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
         fig_bar = px.bar(
@@ -106,7 +103,7 @@ try:
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
-        # --- Row 2: Pie Chart (Category Distribution) ---
+        # --- Row 2: Pie Chart ---
         st.markdown("#### Spending Distribution (%)")
         cat_summary = df_filtered.groupby('Category')['Amount'].sum().reset_index()
         fig_pie = px.pie(
@@ -116,10 +113,11 @@ try:
         )
         st.plotly_chart(fig_pie, use_container_width=True)
 
-    # Portfolio Wealth
+    # Portfolio Section
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
     if not df_portfolio.empty:
+        df_portfolio['Value'] = pd.to_numeric(df_portfolio['Value'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         total_v = float(df_portfolio['Value'].sum())
         p_col1, p_col2 = st.columns([1, 2])
         with p_col1:
