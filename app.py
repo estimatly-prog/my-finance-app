@@ -28,8 +28,8 @@ st.title("🧠 Financial Brain Pro")
 try:
     # 4. Data Loading (Using connection for both reading and writing)
     # Ensure worksheet names match exactly with your Google Sheets tabs
-    df_expense = conn.read(worksheet="Expenses", ttl="5s") 
-    df_portfolio = conn.read(worksheet="Portfolio", ttl="1m")
+df_expense = conn.read(ttl="5s") # มันจะอ่าน Tab แรกสุดของไฟล์มาให้
+st.write("Debug: Connection successful, found data!", df_expense.head())
 
     # Data Cleaning Logic
     for df in [df_expense, df_portfolio]:
