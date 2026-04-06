@@ -6,21 +6,7 @@ from streamlit_gsheets import GSheetsConnection
 # 1. Page Configuration
 st.set_page_config(page_title="Financial Brain Pro", page_icon="🧠", layout="wide")
 
-# 2. Professional Dark Theme CSS
-st.markdown("""
-    <style>
-    .main { background-color: #0E1117; }
-    div[data-testid="stMetric"] {
-        background-color: #161B22;
-        border: 1px solid #30363D;
-        padding: 15px;
-        border-radius: 10px;
-    }
-    header, .stMarkdown { color: #E0E0E0; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# 3. Setup Connection & Constants
+# 2. Setup Connection & Constants
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
 def load_public_data(url, gid):
@@ -33,13 +19,50 @@ def load_public_data(url, gid):
 
 st.title("🧠 Financial Brain Pro")
 
+# --- SECTION 1: QUICK TRANSACTION ENTRY ---
+with st.expander("➕ Quick Transaction Entry", expanded=True):
+    with st.form("entry_form", clear_on_submit=True):
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            date = st.date_input("Date", datetime.now())
+            category = st.selectbox("Category", ["Food", "Transport", "Shopping", "Investment", "Bills", "Others"])
+        with col_f2:
+            amount = st.number_input("Amount (THB)", min_value=0.0, step=1.0)
+            payment = st.selectbox("Payment Method", ["PromptPay", "Credit: KTC", "Credit: SCB", "Cash"])
+        with col_f3:
+            note = st.text_input("Note (Optional)")
+            submitted = st.form_submit_button("Save Transaction")
+            
+        if submitted:
+            if amount > 0:
+                try:
+                    conn = st.connection("gsheets", type=GSheetsConnection)
+                    new_data = pd.DataFrame([{
+                        "Date": date.strftime("%Y-%m-%d"),
+                        "Category": category,
+                        "Amount": amount,
+                        "Note": note,
+                        "Payment_Method": payment
+                    }])
+                    # Write to Google Sheets
+                    conn.create(worksheet="Expenses", data=new_data)
+                    st.success("Transaction Saved!")
+                    st.balloons()
+                    st.rerun()
+                except Exception as save_error:
+                    st.error(f"Save Failed: {save_error}")
+            else:
+                st.error("Please enter an amount.")
+
+st.markdown("---")
+
+# --- SECTION 2: ANALYTICS DASHBOARD ---
 try:
-    # 4. Data Loading - Hybrid Approach
-    # เราใช้การอ่านแบบ Public (GID) เพื่อความชัวร์ว่ากราฟจะขึ้นแน่นอน
+    # Load data for charts
     df_expense = load_public_data(SHEET_URL, "0") 
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
-    # Data Cleaning Logic
+    # Data Cleaning
     for df in [df_expense, df_portfolio]:
         if not df.empty:
             target_col = 'Amount' if 'Amount' in df.columns else 'Value'
@@ -47,47 +70,6 @@ try:
                 df[target_col] = df[target_col].astype(str).str.replace(',', '').str.strip()
                 df[target_col] = pd.to_numeric(df[target_col], errors='coerce').fillna(0)
 
-    # --- SECTION 1: QUICK TRANSACTION ENTRY ---
-    with st.expander("➕ Quick Transaction Entry", expanded=True):
-        with st.form("entry_form", clear_on_submit=True):
-            col_f1, col_f2, col_f3 = st.columns(3)
-            with col_f1:
-                date = st.date_input("Date", datetime.now())
-                category = st.selectbox("Category", ["Food", "Transport", "Shopping", "Investment", "Bills", "Others"])
-            with col_f2:
-                amount = st.number_input("Amount (THB)", min_value=0.0, step=1.0)
-                payment = st.selectbox("Payment Method", ["PromptPay", "Credit: KTC", "Credit: SCB", "Cash"])
-            with col_f3:
-                note = st.text_input("Note (Optional)")
-                submitted = st.form_submit_button("Save Transaction")
-                
-if submitted:
-                if amount > 0:
-                    try:
-                        conn = st.connection("gsheets", type=GSheetsConnection)
-                        
-                        # สร้างข้อมูลใหม่
-                        new_row = {
-                            "Date": [date.strftime("%Y-%m-%d")],
-                            "Category": [category],
-                            "Amount": [amount],
-                            "Note": [note],
-                            "Payment_Method": [payment]
-                        }
-                        new_df = pd.DataFrame(new_row)
-                        
-                        # ลองใช้วิธี append (ต่อท้าย) แทนการ concat เอง
-                        conn.create(worksheet="Expenses", data=new_df)
-                        
-                        st.success("Transaction Saved!")
-                        st.balloons()
-                        st.rerun()
-                    except Exception as save_error:
-                        st.error(f"Save Failed: {save_error}")
-
-    # --- SECTION 2: ANALYTICS DASHBOARD ---
-    st.markdown("---")
-    
     # Spending Analysis
     st.subheader("💳 Spending Analysis")
     if not df_expense.empty:
@@ -96,6 +78,7 @@ if submitted:
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
         c2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
+        
         if total_ex > 0:
             top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
             c3.metric("Top Spending Category", str(top_cat))
@@ -118,7 +101,8 @@ if submitted:
             st.metric("Total Net Worth", f"{total_v:,.2f} THB")
             st.dataframe(df_portfolio[['Asset_Name', 'Type', 'Value']], use_container_width=True)
         with p_col2:
-            st.area_chart(df_portfolio.set_index('Asset_Name')['Value'])
+            if 'Asset_Name' in df_portfolio.columns:
+                st.area_chart(df_portfolio.set_index('Asset_Name')['Value'])
 
 except Exception as e:
     st.error(f"Dashboard Error: {e}")
