@@ -16,7 +16,7 @@ st.markdown("""
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        background: linear-gradient(90.13deg, #FFFFFF 0%, #717171 100%);
+        background: linear-gradient(90deg, #FFFFFF 0%, #00D1FF 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
