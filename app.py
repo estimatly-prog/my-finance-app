@@ -58,14 +58,25 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
 
 st.markdown("---")
 
+# --- ADD FILTER SIDEBAR ---
+if not df_filtered.empty:
+    df_filtered['Date'] = pd.to_datetime(df_filtered['Date'])
+    month_list = df_filtered['Date'].dt.strftime('%B %Y').unique()
+    selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
+    
+    # กรองข้อมูลตามเดือนที่เลือก
+    df_filtered = df_filtered[df_filtered['Date'].dt.strftime('%B %Y') == selected_month]
+else:
+    df_filtered = df_filtered
+    
 # --- SECTION 2: ANALYTICS DASHBOARD ---
 try:
     # Load data for charts
-    df_expense = load_public_data(SHEET_URL, "0") 
+    df_filtered = load_public_data(SHEET_URL, "0") 
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
 
     # Data Cleaning
-    for df in [df_expense, df_portfolio]:
+    for df in [df_filtered, df_portfolio]:
         if not df.empty:
             target_col = 'Amount' if 'Amount' in df.columns else 'Value'
             if target_col in df.columns:
@@ -74,20 +85,20 @@ try:
 
     # Spending Analysis
     st.subheader("💳 Spending Analysis")
-    if not df_expense.empty:
-        total_ex = float(df_expense['Amount'].sum())
+    if not df_filtered.empty:
+        total_ex = float(df_filtered['Amount'].sum())
         daily_avg = total_ex / 30
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Monthly Spend", f"{total_ex:,.2f} THB")
         c2.metric("Daily Burn Rate", f"{daily_avg:,.2f} THB")
         
         if total_ex > 0:
-            top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
+            top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
             c3.metric("Top Spending Category", str(top_cat))
 
         # --- Row 1: Bar Chart (Payment Methods) ---
         st.markdown("#### Payment Methods Breakdown")
-        payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum().reset_index()
+        payment_summary = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
         fig_bar = px.bar(
             payment_summary, x='Payment_Method', y='Amount',
             color='Payment_Method', color_discrete_sequence=px.colors.qualitative.Pastel,
@@ -97,7 +108,7 @@ try:
 
         # --- Row 2: Pie Chart (Category Distribution) ---
         st.markdown("#### Spending Distribution (%)")
-        cat_summary = df_expense.groupby('Category')['Amount'].sum().reset_index()
+        cat_summary = df_filtered.groupby('Category')['Amount'].sum().reset_index()
         fig_pie = px.pie(
             cat_summary, values='Amount', names='Category',
             hole=0.4, color_discrete_sequence=px.colors.qualitative.Pastel,
