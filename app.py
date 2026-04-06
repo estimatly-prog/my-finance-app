@@ -58,73 +58,73 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
 
 st.markdown("---")
 
-# --- SECTION 2: DATA LOADING & BUDGET LOGIC ---
+# --- SECTION 2: DATA LOADING ---
 try:
-    # Load Data from 3 Tabs
     df_raw = load_public_data(SHEET_URL, "0")          # Expenses
     df_portfolio = load_public_data(SHEET_URL, "1218817484") # Portfolio
-    df_budget = load_public_data(SHEET_URL, "1880535920") # Budget (ใส่ GID ของ Tab Budget ของคุณ)
+    df_budget = load_public_data(SHEET_URL, "2055623351") # Budget
+    df_goals = load_public_data(SHEET_URL, "1271566138") 
 
+    # --- [NEW] SECTION: SAVINGS GOAL TRACKER ---
+    if not df_goals.empty:
+        st.subheader("🎯 Savings & Financial Goals")
+        goal_cols = st.columns(len(df_goals))
+        
+        for i, row in df_goals.iterrows():
+            with goal_cols[i]:
+                name = row['Goal_Name']
+                target = float(str(row['Target_Amount']).replace(',', ''))
+                current = float(str(row['Current_Saved']).replace(',', ''))
+                progress = min(current / target, 1.0) if target > 0 else 0
+                
+                # แสดง Metric และ Progress Bar
+                st.metric(name, f"{current:,.0f} / {target:,.0f} THB", f"{progress*100:.1f}%")
+                st.progress(progress)
+                if progress >= 1.0:
+                    st.caption("🎉 Goal Achieved!")
+        st.markdown("---")
+
+    # --- ANALYTICS DASHBOARD ---
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-        # Sidebar Filter
         month_list = df_raw['Date'].dt.strftime('%Y-%m').unique().tolist()
         month_list.sort(reverse=True)
         selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
         
-        # --- BUDGET TRACKER VISUALS ---
-        st.subheader(f"🎯 Budget Tracker: {selected_month}")
-        
+        # Budget Tracker Visuals
+        st.subheader(f"📊 Monthly Budget Status: {selected_month}")
         if not df_budget.empty:
-            # รวมยอดจ่ายจริงแยกตามหมวดหมู่
             actual_spending = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-            # รวมข้อมูล Budget กับ Actual เข้าด้วยกัน
             budget_comparison = pd.merge(df_budget, actual_spending, on='Category', how='left').fillna(0)
             
-            # วนลูปแสดง Progress Bar ของแต่ละหมวดหมู่
-            cols = st.columns(len(budget_comparison))
+            b_cols = st.columns(len(budget_comparison))
             for i, row in budget_comparison.iterrows():
-                with cols[i % len(cols)]:
-                    cat = row['Category']
+                with b_cols[i]:
                     actual = row['Amount']
-                    budget = row['Monthly_Budget']
-                    percent = min(actual / budget, 1.0) if budget > 0 else 0
-                    
-                    # เลือกสีตามความอันตราย
-                    color = "green" if percent < 0.7 else "orange" if percent < 0.9 else "red"
-                    
-                    st.metric(cat, f"{actual:,.0f} / {budget:,.0f}", f"{percent*100:.1f}% used", delta_color="inverse")
-                    st.progress(percent)
-        
+                    budget = float(str(row['Monthly_Budget']).replace(',', ''))
+                    p = min(actual / budget, 1.0) if budget > 0 else 0
+                    st.metric(row['Category'], f"{actual:,.0f}", f"{p*100:.0f}% used", delta_color="inverse")
+                    st.progress(p)
+
         st.markdown("---")
-        
-        # 4. Spending Analysis Charts
-        st.subheader("💳 Spending Details")
-        total_ex = float(df_filtered['Amount'].sum())
-        c1, c2 = st.columns([1, 1])
+        # Spending Detail Charts
+        c1, c2 = st.columns(2)
         with c1:
             pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
-            fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', title="Methods", template="plotly_dark", height=300)
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300), use_container_width=True)
         with c2:
             cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-            fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, title="Categories", template="plotly_dark", height=300)
-            st.plotly_chart(fig_pie, use_container_width=True)
-
-        # Recent Transactions
-        with st.expander("📜 View Full Transaction History"):
-            st.dataframe(df_filtered.sort_values(by='Date', ascending=False), use_container_width=True, hide_index=True)
+            st.plotly_chart(px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300), use_container_width=True)
 
     # Portfolio Section
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
     if not df_portfolio.empty:
         df_portfolio['Value'] = pd.to_numeric(df_portfolio['Value'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-        total_v = float(df_portfolio['Value'].sum())
-        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
+        st.metric("Total Net Worth", f"{df_portfolio['Value'].sum():,.2f} THB")
         st.area_chart(df_portfolio.set_index('Asset_Name')['Value'])
 
 except Exception as e:
