@@ -28,7 +28,7 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
             category = st.selectbox("Category", ["Food", "Transport", "Shopping", "Investment", "Bills", "Others"])
         with col_f2:
             amount = st.number_input("Amount (THB)", min_value=0.0, step=1.0)
-            payment = st.selectbox("Payment Method", ["PromptPay", "Credit: KTC", "Credit: SCB", "Cash"])
+            payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Central The 1 REDZ", "Kbank The Passion", "ttb absolute", "Cash"])
         with col_f3:
             note = st.text_input("Note (Optional)")
             submitted = st.form_submit_button("Save Transaction")
