@@ -7,11 +7,20 @@ import plotly.express as px
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
 
-# --- CUSTOM CSS (ความคูลระดับโลก) ---
+# --- CUSTOM CSS (แก้ให้แยกส่วนไอคอนกับตัวหนังสือ) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
     html, body, [class*="css"]  { font-family: 'Inter', sans-serif; }
+    
+    /* สร้าง Container สำหรับจัดวางไอคอนและชื่อแอป */
+    .brand-container {
+        display: flex;
+        align-items: center;
+        gap: 12px; /* ระยะห่างระหว่างผีกับชื่อ */
+        margin-bottom: -10px;
+    }
+
     .app-title {
         font-size: 48px !important;
         font-weight: 800 !important;
@@ -19,6 +28,12 @@ st.markdown("""
         background: linear-gradient(90deg, #FFFFFF 0%, #00D1FF 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin: 0 !important; /* ลบ margin เพื่อให้ Flexbox คุมได้แม่นยำ */
+    }
+
+    .custom-icon {
+        font-size: 40px; /* ขนาดของเจ้าผี */
+        line-height: 1;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -35,8 +50,13 @@ def load_public_data(url, gid):
 # 3. SET CONSTANTS
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
-# 4. START UI
-st.markdown('<p class="app-title">VELO. 👻</p>', unsafe_allow_html=True)
+# --- 4. START UI (ใช้โครงสร้างใหม่ที่เห็นไอคอนชัดเจน 100%) ---
+st.markdown("""
+    <div class="brand-container">
+        <span class="custom-icon">👻</span>
+        <h1 class="app-title">VELO.</h1>
+    </div>
+    """, unsafe_allow_html=True)
 st.caption("STRATEGIC INTELLIGENCE & SPENDING VELOCITY")
 
 # --- หลังจากนี้ค่อยเป็น Section 1 (Form) และ Section 2 (Data Loading) ---
