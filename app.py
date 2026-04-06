@@ -131,6 +131,25 @@ try:
             hide_index=True
         )
 
+        # 4. Dashboard Metrics
+        st.subheader(f"💳 Spending Analysis: {selected_month}")
+        total_ex = float(df_filtered['Amount'].sum())
+        
+        # คำนวณค่าเฉลี่ยรายวัน (หารด้วยจำนวนวันในเดือนนั้นๆ หรือ 30 วันมาตรฐาน)
+        daily_avg = total_ex / 30 
+        
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("ยอดรวมเดือนนี้", f"{total_ex:,.2f} THB")
+        with c2:
+            st.metric("เฉลี่ยรายวัน", f"{daily_avg:,.2f} THB")
+        with c3:
+            if total_ex > 0:
+                # หาหมวดหมู่ที่มียอดรวมสูงสุด
+                top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
+                top_val = df_filtered.groupby('Category')['Amount'].sum().max()
+                st.metric("หมวดที่จ่ายหนักสุด", str(top_cat), f"{top_val:,.0f} THB")
+                
     # Portfolio Section
     st.markdown("---")
     st.subheader("📈 Portfolio Wealth")
