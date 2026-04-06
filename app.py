@@ -121,17 +121,7 @@ try:
             fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        # 3. Recent Transactions (นำกลับมาให้แล้วครับ)
-        st.markdown("---")
-        st.subheader(f"📜 Recent Transactions ({selected_month})")
-        recent_df = df_filtered.sort_values(by='Date', ascending=False)
-        st.dataframe(
-            recent_df[['Date', 'Category', 'Amount', 'Payment_Method', 'Note']], 
-            use_container_width=True,
-            hide_index=True
-        )
-
-        # 4. Dashboard Metrics
+        # 3. Dashboard Metrics
         st.subheader(f"💳 Spending Analysis: {selected_month}")
         total_ex = float(df_filtered['Amount'].sum())
         
@@ -149,6 +139,16 @@ try:
                 top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
                 top_val = df_filtered.groupby('Category')['Amount'].sum().max()
                 st.metric("หมวดที่จ่ายหนักสุด", str(top_cat), f"{top_val:,.0f} THB")
+                
+        # 4. Recent Transactions (นำกลับมาให้แล้วครับ)
+        st.markdown("---")
+        st.subheader(f"📜 Recent Transactions ({selected_month})")
+        recent_df = df_filtered.sort_values(by='Date', ascending=False)
+        st.dataframe(
+            recent_df[['Date', 'Category', 'Amount', 'Payment_Method', 'Note']], 
+            use_container_width=True,
+            hide_index=True
+        )
                 
     # Portfolio Section
     st.markdown("---")
