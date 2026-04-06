@@ -28,7 +28,7 @@ st.title("🧠 Financial Brain Pro")
 # เริ่มต้น Block ตรวจสอบการทำงาน
 try:
     # 4. Data Loading (สังเกตการย่อหน้าด้านล่างนี้ ต้องตรงกันทั้งหมด)
-    df_expense = conn.read(worksheet="Expenses", ttl="5s") 
+    df_expense = conn.read(ttl="5s")
     df_portfolio = conn.read(worksheet="Portfolio", ttl="1m")
 
     # Data Cleaning Logic
