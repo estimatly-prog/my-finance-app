@@ -130,15 +130,15 @@ try:
         
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.metric("ยอดรวมเดือนนี้", f"{total_ex:,.2f} THB")
+            st.metric("Total Monthly Amount", f"{total_ex:,.2f} THB")
         with c2:
-            st.metric("เฉลี่ยรายวัน", f"{daily_avg:,.2f} THB")
+            st.metric("Daily Average", f"{daily_avg:,.2f} THB")
         with c3:
             if total_ex > 0:
                 # หาหมวดหมู่ที่มียอดรวมสูงสุด
                 top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
                 top_val = df_filtered.groupby('Category')['Amount'].sum().max()
-                st.metric("หมวดที่จ่ายหนักสุด", str(top_cat), f"{top_val:,.0f} THB")
+                st.metric("Top Spending Categories", str(top_cat), f"{top_val:,.0f} THB")
                 
         # 4. Recent Transactions (นำกลับมาให้แล้วครับ)
         st.markdown("---")
