@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
-# --- [ADDITION 1] Import Plotly ---
 import plotly.express as px
 
 # 1. Page Configuration
@@ -38,13 +37,8 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
         if submitted:
             if amount > 0:
                 try:
-                    # เรียกการเชื่อมต่อ
                     conn = st.connection("gsheets", type=GSheetsConnection)
-                    
-                    # 1. อ่านข้อมูลปัจจุบันที่มีอยู่ใน Sheets ออกมานิ่งๆ ก่อน
                     current_df = conn.read(worksheet="Expenses")
-                    
-                    # 2. เตรียมข้อมูลใหม่ที่เราเพิ่งกรอก
                     new_data = pd.DataFrame([{
                         "Date": date.strftime("%Y-%m-%d"),
                         "Category": category,
@@ -52,13 +46,8 @@ with st.expander("➕ Quick Transaction Entry", expanded=True):
                         "Note": note,
                         "Payment_Method": payment
                     }])
-                    
-                    # 3. เอาข้อมูลใหม่ไป "ต่อตูด" (Append) ข้อมูลเก่า
                     updated_df = pd.concat([current_df, new_data], ignore_index=True)
-                    
-                    # 4. ส่งข้อมูลที่รวมกันแล้วกลับไปทับที่เดิม
                     conn.update(worksheet="Expenses", data=updated_df)
-                    
                     st.success("Transaction Saved Successfully!")
                     st.balloons()
                     st.rerun()
@@ -96,51 +85,25 @@ try:
             top_cat = df_expense.groupby('Category')['Amount'].sum().idxmax()
             c3.metric("Top Spending Category", str(top_cat))
 
-        if 'Payment_Method' in df_expense.columns:
-            st.markdown("#### Payment Methods Breakdown")
-            pay_col1, pay_col2 = st.columns([1, 2])
-            
-            # --- [MODIFICATION 1] Prepare Summary for Plotly ---
-            # เราใช้ .reset_index() เพื่อให้ Payment_Method กลายเป็นคอลัมน์ปกติ ไม่ใช่ Index
-            payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum().reset_index()
-            
-            with pay_col1:
-                # แสดงตารางเหมือนเดิม แต่เราใช้ DataFrame ที่เตรียมไว้
-                st.dataframe(payment_summary.set_index('Payment_Method'), use_container_width=True)
-            
-            with pay_col2:
-                # --- [MODIFICATION 2] Replace st.bar_chart with px.bar ---
-                # สร้างกราฟ Plotly ที่แยกสีตามหมวดหมู่
-                fig = px.bar(
-                    payment_summary, 
-                    x='Payment_Method', 
-                    y='Amount',
-                    color='Payment_Method',  # สั่งให้แยกสีตามวิธีชำระเงิน
-                    color_discrete_sequence=px.colors.qualitative.Pastel,  # เลือกโทนสี Pastel สบายตา
-                    labels={"Payment_Method": "Method", "Amount": "Spend (THB)"} # เปลี่ยนชื่อ Label แกน
-                )
-                
-                # ปรับแต่ง Fig ให้เข้ากับธีม Dashboad
-                fig.update_layout(
-                    showlegend=False, # ซ่อน Legend ด้านข้างเพื่อประหยัดพื้นที่
-                    margin=dict(l=20, r=20, t=20, b=20), # ลดขอบกราฟ
-                    height=300, # กำหนดความสูง
-                    paper_bgcolor='rgba(0,0,0,0)', # ทำให้พื้นหลังกราฟโปร่งใส เข้ากับ Dark Mode
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
-                
-                st.plotly_chart(fig, use_container_width=True)
+        # --- Row 1: Bar Chart (Payment Methods) ---
+        st.markdown("#### Payment Methods Breakdown")
+        payment_summary = df_expense.groupby('Payment_Method')['Amount'].sum().reset_index()
+        fig_bar = px.bar(
+            payment_summary, x='Payment_Method', y='Amount',
+            color='Payment_Method', color_discrete_sequence=px.colors.qualitative.Pastel,
+            template="plotly_dark", height=350
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-st.markdown("#### Spending Distribution (%)")
-fig_pie = px.pie(
-    df_expense, 
-    values='Amount', 
-    names='Category', 
-    hole=0.4,
-    color_discrete_sequence=px.colors.qualitative.Pastel,
-    template="plotly_dark"
-)
-st.plotly_chart(fig_pie, use_container_width=True)
+        # --- Row 2: Pie Chart (Category Distribution) ---
+        st.markdown("#### Spending Distribution (%)")
+        cat_summary = df_expense.groupby('Category')['Amount'].sum().reset_index()
+        fig_pie = px.pie(
+            cat_summary, values='Amount', names='Category',
+            hole=0.4, color_discrete_sequence=px.colors.qualitative.Pastel,
+            template="plotly_dark", height=400
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
 
     # Portfolio Wealth
     st.markdown("---")
