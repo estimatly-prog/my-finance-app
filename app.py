@@ -67,13 +67,14 @@ try:
     # 2. Data Cleaning
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
-        # ลบคอมม่าและแปลงเป็นตัวเลข
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-        # 3. Sidebar Filter (ทำหลังจากโหลด Data)
-        month_list = df_raw['Date'].dt.strftime('%Y-%m').unique()
-        month_list.sort() 
-        selected_month = st.sidebar.selectbox("📅 Select Month", month_list[::-1]) # เอาเดือนล่าสุดขึ้นก่อน
+        # 3. Sidebar Filter (FIXED: แก้ไขเรื่อง ArrowStringArray sort)
+        # ดึงรายชื่อเดือนออกมา แปลงเป็น List แล้วค่อย Sort
+        month_list = df_raw['Date'].dt.strftime('%Y-%m').unique().tolist()
+        month_list.sort(reverse=True) # เรียงจากใหม่ไปเก่า
+        
+        selected_month = st.sidebar.selectbox("📅 Select Month", month_list)
         
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
         
@@ -102,7 +103,7 @@ try:
             fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=350)
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        # --- SECTION 3: RECENT TRANSACTIONS ---
+        # SECTION 3: RECENT TRANSACTIONS
         st.markdown("---")
         st.subheader("📜 Recent Transactions (This Month)")
         recent_df = df_filtered.sort_values(by='Date', ascending=False)
