@@ -231,34 +231,34 @@ try:
     st.subheader("📈 Portfolio Wealth")
 
     if not df_portfolio.empty:
-    # 1. คลีนข้อมูล (แปลง Units และ Price เป็นตัวเลข)
-    df_portfolio['Units'] = pd.to_numeric(df_portfolio['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-    df_portfolio['Price_Per_Unit'] = pd.to_numeric(df_portfolio['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+        # 1. คลีนข้อมูล (แปลง Units และ Price เป็นตัวเลข)
+        df_portfolio['Units'] = pd.to_numeric(df_portfolio['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+        df_portfolio['Price_Per_Unit'] = pd.to_numeric(df_portfolio['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
     
-    # 2. คำนวณ Value ใหม่ (Units * Price)
-    df_portfolio['Value'] = df_portfolio['Units'] * df_portfolio['Price_Per_Unit']
+        # 2. คำนวณ Value ใหม่ (Units * Price)
+        df_portfolio['Value'] = df_portfolio['Units'] * df_portfolio['Price_Per_Unit']
     
-    total_v = float(df_portfolio['Value'].sum())
+        total_v = float(df_portfolio['Value'].sum())
     
-    p_col1, p_col2 = st.columns([1, 2])
-    with p_col1:
-        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
-        # แสดงตารางแบบใหม่ที่มี Units และ Price ด้วย
-        st.dataframe(
+        p_col1, p_col2 = st.columns([1, 2])
+            with p_col1:
+            st.metric("Total Net Worth", f"{total_v:,.2f} THB")
+            # แสดงตารางแบบใหม่ที่มี Units และ Price ด้วย
+            st.dataframe(
             df_portfolio[['Asset_Name', 'Type', 'Units', 'Price_Per_Unit', 'Value', 'Note']], 
             use_container_width=True, 
             hide_index=True
-        )
+            )
     
-    with p_col2:
-        # กราฟวงกลมแบ่งสัดส่วนสินทรัพย์ (เพื่อให้ดูคูลเหมือนแอปธนาคาร)
-        fig_portfolio = px.pie(
+            with p_col2:
+            # กราฟวงกลมแบ่งสัดส่วนสินทรัพย์ (เพื่อให้ดูคูลเหมือนแอปธนาคาร)
+            fig_portfolio = px.pie(
             df_portfolio, values='Value', names='Asset_Name', 
             hole=0.5, template="plotly_dark",
             color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        fig_portfolio.update_layout(margin=dict(l=0, r=0, t=30, b=0))
-        st.plotly_chart(fig_portfolio, use_container_width=True)
+            )
+            fig_portfolio.update_layout(margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig_portfolio, use_container_width=True)
 
 except Exception as e:
     st.error(f"Dashboard Error: {e}")
