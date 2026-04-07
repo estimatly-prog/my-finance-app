@@ -76,21 +76,21 @@ if menu == "💸 Cash Flow":
         selected_month = st.selectbox("📅 Reviewing Month", month_list, label_visibility="collapsed")
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
-       # --- CONFIG: กำหนดความเร็วเป้าหมายของคุณ Jessada ---
-        DAILY_BUDGET_TARGET = 350 
+        # --- [STEP 1] CONFIG: ความเร็วเป้าหมาย ---
+        DAILY_BUDGET_TARGET = 350  
         
-        # --- Calculation Logic (ดึงตัวคำนวณ Buffer กลับมาด้วย) ---
+        # --- [STEP 2] CALCULATION LOGIC: ต้องคำนวณให้เสร็จก่อนแสดงผล ---
         today = datetime.now().date()
         df_filtered['Date_Only'] = df_filtered['Date'].dt.date
         
         total_month = df_filtered['Amount'].sum()
         total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
         
-        # หาจำนวนวันที่ผ่านมาแล้วในเดือนนี้
+        # หาจำนวนวันที่ผ่านมาแล้ว
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         actual_daily_avg = total_month / num_days_passed
 
-        # --- ส่วนที่หายไป: คำนวณ Survival Buffer ---
+        # คำนวณ Survival Buffer (ดึงจากหน้า Wealth มาหาร)
         if not df_portfolio.empty:
             temp_p = df_portfolio.copy()
             temp_p['Units'] = pd.to_numeric(temp_p['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
@@ -100,30 +100,30 @@ if menu == "💸 Cash Flow":
         else:
             liquid_cash = 0
             
+        # สร้างตัวแปร survival_buffer เตรียมไว้
         survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
-        # -------------------------------------------
+
+        # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
+        m1, m2, m3, m4 = st.columns(4)
         
-        # 2. Survival Buffer (คงเดิม)
+        # Total Spent: เทียบกับงบสะสม
+        target_so_far = DAILY_BUDGET_TARGET * num_days_passed
+        diff_total = target_so_far - total_month
+        m1.metric("Total Spent", f"{total_month:,.0f} ฿", delta=f"{diff_total:,.0f} ฿ from budget", delta_color="normal")
+        
+        # Survival Buffer: โชว์จำนวนวัน (ใช้ตัวแปรที่คำนวณไว้ข้างบน)
         m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
         
-        # 3. Today's Velocity: เทียบกับเป้า 350 ตรงๆ
+        # Today's Velocity: วันนี้ใช้ไปเท่าไหร่ เหลือเท่าไหร่
         diff_today = DAILY_BUDGET_TARGET - total_today
-        m3.metric(
-            "Today's Spent", 
-            f"{total_today:,.0f} ฿", 
-            delta=f"{diff_today:,.0f} ฿ left", 
-            delta_color="normal"
-        )
+        m3.metric("Today's Spent", f"{total_today:,.0f} ฿", delta=f"{diff_today:,.0f} ฿ left", delta_color="normal")
         
-        # 4. Daily Avg: ดูว่าความเร็วเฉลี่ยตอนนี้ เกิน 350 หรือยัง
+        # Avg Speed: ความเร็วเฉลี่ยเทียบกับเป้าหมาย 350
         diff_avg = DAILY_BUDGET_TARGET - actual_daily_avg
-        m4.metric(
-            "Avg Speed", 
-            f"{actual_daily_avg:,.0f} / {DAILY_BUDGET_TARGET}", 
-            delta=f"{diff_avg:,.0f} ฿ room", 
-            delta_color="normal"
-        )
+        m4.metric("Avg Speed", f"{actual_daily_avg:,.0f} / {DAILY_BUDGET_TARGET}", delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
+        
+        st.write("---")
     # 2. ➕ QUICK ENTRY (ย้ายลงมาและย่อไว้เพื่อให้ Insight นำหน้า)
     with st.expander("📝 New Transaction"):
         with st.form("entry_form", clear_on_submit=True):
