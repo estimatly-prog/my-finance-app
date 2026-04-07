@@ -47,6 +47,18 @@ def load_public_data(url, gid):
     except:
         return pd.DataFrame()
 
+# [ตำแหน่ง 2: FUNCTIONS] - เพิ่มฟังก์ชันสำหรับลบสินทรัพย์
+def delete_asset(asset_name):
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        df = conn.read(worksheet="Portfolio", ttl=0)
+        # กรองเอาทุกอย่าง ยกเว้นตัวที่จะลบ
+        df = df[df['Asset_Name'] != asset_name]
+        conn.update(worksheet="Portfolio", data=df)
+        return True
+    except:
+        return False
+
 # 3. SET CONSTANTS
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
 
@@ -236,3 +248,56 @@ except Exception as e:
 
 st.markdown("---")
 st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
+
+# [ตำแหน่ง 7: BOTTOM] - ASSET MANAGEMENT SYSTEM
+st.markdown("---")
+st.subheader("🛠️ Asset Management (Add/Edit/Delete)")
+
+with st.expander("📝 Manage Your Assets", expanded=False):
+    # ส่วนที่ 1: ฟอร์มเพิ่ม/แก้ไข
+    with st.form("asset_form", clear_on_submit=True):
+        col_a1, col_a2, col_a3, col_a4 = st.columns(4)
+        with col_a1:
+            a_name = st.text_input("Asset Name", placeholder="e.g. TISCO, BTC")
+        with col_a2:
+            a_type = st.selectbox("Type", ["Stock", "Crypto", "Cash", "Gold", "Real Estate"])
+        with col_a3:
+            a_units = st.number_input("Units", min_value=0.0, step=0.01)
+        with col_a4:
+            a_price = st.number_input("Price per Unit", min_value=0.0, step=0.1)
+        
+        a_note = st.text_input("Note (Optional)")
+        a_submitted = st.form_submit_button("Save Asset")
+
+        if a_submitted and a_name:
+            try:
+                conn = st.connection("gsheets", type=GSheetsConnection)
+                curr_p = conn.read(worksheet="Portfolio", ttl=0)
+                
+                new_asset = pd.DataFrame([{
+                    "Asset_Name": a_name,
+                    "Type": a_type,
+                    "Units": a_units,
+                    "Price_Per_Unit": a_price,
+                    "Note": a_note
+                }])
+                
+                # ถ้าชื่อซ้ำ ให้ลบของเก่าออกก่อน (เป็นการ Update ในตัว)
+                curr_p = curr_p[curr_p['Asset_Name'] != a_name]
+                updated_p = pd.concat([curr_p, new_asset], ignore_index=True)
+                
+                conn.update(worksheet="Portfolio", data=updated_p)
+                st.success(f"Asset '{a_name}' saved!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    # ส่วนที่ 2: ปุ่มลบข้อมูล
+    st.markdown("---")
+    st.write("🗑️ **Delete Asset**")
+    if not df_portfolio.empty:
+        asset_to_delete = st.selectbox("Select Asset to Remove", df_portfolio['Asset_Name'].unique())
+        if st.button("Confirm Delete", type="primary"):
+            if delete_asset(asset_to_delete):
+                st.success(f"Deleted {asset_to_delete}")
+                st.rerun()
