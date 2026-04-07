@@ -76,64 +76,55 @@ if menu == "💸 Cash Flow":
         selected_month = st.selectbox("📅 Reviewing Month", month_list, label_visibility="collapsed")
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
+       # --- CONFIG: กำหนดความเร็วเป้าหมายของคุณ Jessada ---
+        DAILY_BUDGET_TARGET = 350 
+        
         # --- Calculation Logic ---
         today = datetime.now().date()
-        start_of_week = today - pd.Timedelta(days=today.weekday())
         df_filtered['Date_Only'] = df_filtered['Date'].dt.date
         
         total_month = df_filtered['Amount'].sum()
         total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
-        total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
         
+        # หาจำนวนวันที่ผ่านมาแล้วในเดือนนี้
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         actual_daily_avg = total_month / num_days_passed
-        
-       # --- [FIXED] Calculation Logic for Survival Buffer ---
-        today = datetime.now().date()
-        start_of_week = today - pd.Timedelta(days=today.weekday())
-        df_filtered['Date_Only'] = df_filtered['Date'].dt.date
-        
-        total_month = df_filtered['Amount'].sum()
-        total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
-        total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
-        
-        num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
-        actual_daily_avg = total_month / num_days_passed
-        
-        # --- จุดที่แก้ไข: คำนวณ Value ก่อนเรียกใช้เพื่อป้องกัน KeyError ---
-        if not df_portfolio.empty:
-            # คลีนข้อมูลก่อนคำนวณ
-            temp_p = df_portfolio.copy()
-            temp_p['Units'] = pd.to_numeric(temp_p['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-            temp_p['Price_Per_Unit'] = pd.to_numeric(temp_p['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-            temp_p['Value'] = temp_p['Units'] * temp_p['Price_Per_Unit']
-            
-            # ดึงเฉพาะรายการที่เป็น 'Cash' มาคำนวณ Buffer
-            liquid_cash = temp_p[temp_p['Type'] == 'Cash']['Value'].sum()
-        else:
-            liquid_cash = 0
-            
-        survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
 
-        # --- Display Metrics ---
+        # --- Display Metrics (กำหนดสีตามเป้าหมาย 350.-) ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
         m1, m2, m3, m4 = st.columns(4)
         
-        # ยอดรวมและแนวโน้ม
-        m1.metric("Total Spent", f"{total_month:,.0f} ฿", delta=f"Avg {actual_daily_avg:,.0f}/day", delta_color="inverse")
+        # 1. Total Spent: เทียบกับงบเฉลี่ยสะสมจนถึงวันนี้
+        # (เช่น วันที่ 7 งบสะสมควรเป็น 350 * 7 = 2,450)
+        target_so_far = DAILY_BUDGET_TARGET * num_days_passed
+        diff_total = target_so_far - total_month
+        m1.metric(
+            "Total Spent", 
+            f"{total_month:,.0f} ฿", 
+            delta=f"{diff_total:,.0f} ฿ from budget", 
+            delta_color="normal" # normal คือ ยิ่งบวกยิ่งเขียว (เหลือเงินเยอะยิ่งดี)
+        )
         
-        # Survival Buffer: เงินสดที่มีอยู่ได้อีกกี่วัน (Insight สำคัญ)
-        m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days", help="จำนวนวันที่คุณจะอยู่ได้ด้วยเงินสดที่มี ณ อัตราการใช้จ่ายปัจจุบัน")
+        # 2. Survival Buffer (คงเดิม)
+        m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
         
-        # Velocity Check: วันนี้ใช้เร็วไปไหม
-        velocity_color = "normal" if total_today <= actual_daily_avg else "inverse"
-        m3.metric("Today's Velocity", f"{total_today:,.0f} ฿", delta="High Speed" if total_today > actual_daily_avg else "Stable", delta_color=velocity_color)
+        # 3. Today's Velocity: เทียบกับเป้า 350 ตรงๆ
+        diff_today = DAILY_BUDGET_TARGET - total_today
+        m3.metric(
+            "Today's Spent", 
+            f"{total_today:,.0f} ฿", 
+            delta=f"{diff_today:,.0f} ฿ left", 
+            delta_color="normal"
+        )
         
-        # Weekly Accumulation
-        m4.metric("Spent This Week", f"{total_week:,.0f} ฿")
-        
-        st.write("---")
-
+        # 4. Daily Avg: ดูว่าความเร็วเฉลี่ยตอนนี้ เกิน 350 หรือยัง
+        diff_avg = DAILY_BUDGET_TARGET - actual_daily_avg
+        m4.metric(
+            "Avg Speed", 
+            f"{actual_daily_avg:,.0f} / {DAILY_BUDGET_TARGET}", 
+            delta=f"{diff_avg:,.0f} ฿ room", 
+            delta_color="normal"
+        )
     # 2. ➕ QUICK ENTRY (ย้ายลงมาและย่อไว้เพื่อให้ Insight นำหน้า)
     with st.expander("📝 New Transaction"):
         with st.form("entry_form", clear_on_submit=True):
