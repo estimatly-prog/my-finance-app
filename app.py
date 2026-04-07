@@ -79,7 +79,7 @@ if menu == "💸 Cash Flow":
        # --- CONFIG: กำหนดความเร็วเป้าหมายของคุณ Jessada ---
         DAILY_BUDGET_TARGET = 350 
         
-        # --- Calculation Logic ---
+        # --- Calculation Logic (ดึงตัวคำนวณ Buffer กลับมาด้วย) ---
         today = datetime.now().date()
         df_filtered['Date_Only'] = df_filtered['Date'].dt.date
         
@@ -90,20 +90,18 @@ if menu == "💸 Cash Flow":
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         actual_daily_avg = total_month / num_days_passed
 
-        # --- Display Metrics (กำหนดสีตามเป้าหมาย 350.-) ---
-        st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
-        m1, m2, m3, m4 = st.columns(4)
-        
-        # 1. Total Spent: เทียบกับงบเฉลี่ยสะสมจนถึงวันนี้
-        # (เช่น วันที่ 7 งบสะสมควรเป็น 350 * 7 = 2,450)
-        target_so_far = DAILY_BUDGET_TARGET * num_days_passed
-        diff_total = target_so_far - total_month
-        m1.metric(
-            "Total Spent", 
-            f"{total_month:,.0f} ฿", 
-            delta=f"{diff_total:,.0f} ฿ from budget", 
-            delta_color="normal" # normal คือ ยิ่งบวกยิ่งเขียว (เหลือเงินเยอะยิ่งดี)
-        )
+        # --- ส่วนที่หายไป: คำนวณ Survival Buffer ---
+        if not df_portfolio.empty:
+            temp_p = df_portfolio.copy()
+            temp_p['Units'] = pd.to_numeric(temp_p['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+            temp_p['Price_Per_Unit'] = pd.to_numeric(temp_p['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+            temp_p['Value'] = temp_p['Units'] * temp_p['Price_Per_Unit']
+            liquid_cash = temp_p[temp_p['Type'] == 'Cash']['Value'].sum()
+        else:
+            liquid_cash = 0
+            
+        survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
+        # -------------------------------------------
         
         # 2. Survival Buffer (คงเดิม)
         m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
