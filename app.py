@@ -88,8 +88,31 @@ if menu == "💸 Cash Flow":
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         actual_daily_avg = total_month / num_days_passed
         
-        # Survival Buffer Calculation (Cash Assets / Daily Burn Rate)
-        liquid_cash = df_portfolio[df_portfolio['Type'] == 'Cash']['Value'].sum() if not df_portfolio.empty else 0
+       # --- [FIXED] Calculation Logic for Survival Buffer ---
+        today = datetime.now().date()
+        start_of_week = today - pd.Timedelta(days=today.weekday())
+        df_filtered['Date_Only'] = df_filtered['Date'].dt.date
+        
+        total_month = df_filtered['Amount'].sum()
+        total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
+        total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
+        
+        num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
+        actual_daily_avg = total_month / num_days_passed
+        
+        # --- จุดที่แก้ไข: คำนวณ Value ก่อนเรียกใช้เพื่อป้องกัน KeyError ---
+        if not df_portfolio.empty:
+            # คลีนข้อมูลก่อนคำนวณ
+            temp_p = df_portfolio.copy()
+            temp_p['Units'] = pd.to_numeric(temp_p['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+            temp_p['Price_Per_Unit'] = pd.to_numeric(temp_p['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+            temp_p['Value'] = temp_p['Units'] * temp_p['Price_Per_Unit']
+            
+            # ดึงเฉพาะรายการที่เป็น 'Cash' มาคำนวณ Buffer
+            liquid_cash = temp_p[temp_p['Type'] == 'Cash']['Value'].sum()
+        else:
+            liquid_cash = 0
+            
         survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
 
         # --- Display Metrics ---
