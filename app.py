@@ -62,11 +62,57 @@ try:
 except:
     st.error("Connection Error")
 
-# --- PAGE 1: CASH FLOW ---
+# --- PAGE 1: CASH FLOW (New Strategic Layout) ---
 if menu == "💸 Cash Flow":
     st.markdown('<h1 class="app-title">CASH FLOW.</h1>', unsafe_allow_html=True)
     
-    with st.expander("➕ Quick Transaction Entry", expanded=False): # ปรับเป็น False เพื่อให้หน้าจอไม่รก
+    # 1. 📊 ADVANCED INSIGHTS (The Pilot's Cockpit)
+    if not df_raw.empty:
+        df_raw['Date'] = pd.to_datetime(df_raw['Date'])
+        df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+        
+        month_list = df_raw['Date'].dt.strftime('%Y-%m').unique().tolist()
+        month_list.sort(reverse=True)
+        selected_month = st.selectbox("📅 Reviewing Month", month_list, label_visibility="collapsed")
+        df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
+
+        # --- Calculation Logic ---
+        today = datetime.now().date()
+        start_of_week = today - pd.Timedelta(days=today.weekday())
+        df_filtered['Date_Only'] = df_filtered['Date'].dt.date
+        
+        total_month = df_filtered['Amount'].sum()
+        total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
+        total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
+        
+        num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
+        actual_daily_avg = total_month / num_days_passed
+        
+        # Survival Buffer Calculation (Cash Assets / Daily Burn Rate)
+        liquid_cash = df_portfolio[df_portfolio['Type'] == 'Cash']['Value'].sum() if not df_portfolio.empty else 0
+        survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
+
+        # --- Display Metrics ---
+        st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
+        m1, m2, m3, m4 = st.columns(4)
+        
+        # ยอดรวมและแนวโน้ม
+        m1.metric("Total Spent", f"{total_month:,.0f} ฿", delta=f"Avg {actual_daily_avg:,.0f}/day", delta_color="inverse")
+        
+        # Survival Buffer: เงินสดที่มีอยู่ได้อีกกี่วัน (Insight สำคัญ)
+        m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days", help="จำนวนวันที่คุณจะอยู่ได้ด้วยเงินสดที่มี ณ อัตราการใช้จ่ายปัจจุบัน")
+        
+        # Velocity Check: วันนี้ใช้เร็วไปไหม
+        velocity_color = "normal" if total_today <= actual_daily_avg else "inverse"
+        m3.metric("Today's Velocity", f"{total_today:,.0f} ฿", delta="High Speed" if total_today > actual_daily_avg else "Stable", delta_color=velocity_color)
+        
+        # Weekly Accumulation
+        m4.metric("Spent This Week", f"{total_week:,.0f} ฿")
+        
+        st.write("---")
+
+    # 2. ➕ QUICK ENTRY (ย้ายลงมาและย่อไว้เพื่อให้ Insight นำหน้า)
+    with st.expander("📝 New Transaction"):
         with st.form("entry_form", clear_on_submit=True):
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
@@ -92,53 +138,8 @@ if menu == "💸 Cash Flow":
                         st.rerun()
                 except: st.error("Please enter a valid number")
 
-    # --- ANALYTICS SECTION (ดึงกลับมาแล้วครับ) ---
+    # 3. 📊 VISUAL ANALYTICS & HISTORY
     if not df_raw.empty:
-        df_raw['Date'] = pd.to_datetime(df_raw['Date'])
-        df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-        
-        month_list = df_raw['Date'].dt.strftime('%Y-%m').unique().tolist()
-        month_list.sort(reverse=True)
-        selected_month = st.selectbox("📅 Select Month to Review", month_list)
-        df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
-
-    # 1. Top Metrics (Actual Spending & Velocity Analysis)
-        st.markdown(f"### 💳 Spending Analysis: {selected_month}")
-        
-        today = datetime.now().date()
-        start_of_week = today - pd.Timedelta(days=today.weekday())
-        
-        if not df_filtered.empty:
-            df_filtered['Date_Only'] = df_filtered['Date'].dt.date
-            
-            # --- ยอดรวมจ่ายจริง (Actual) ---
-            total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
-            total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
-            total_month = df_filtered['Amount'].sum()
-            
-            # --- ค่าเฉลี่ย (Velocity) ---
-            # คำนวณตามจำนวนวันในเดือนนั้นจริง ๆ (เช่น 28, 30, 31 วัน)
-            num_days_in_month = df_filtered['Date'].dt.days_in_month.iloc[0]
-            daily_avg = total_month / num_days_in_month
-            
-            # --- หมวดหมู่หลัก ---
-            top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
-            top_val = df_filtered.groupby('Category')['Amount'].sum().max()
-        else:
-            total_today = total_week = total_month = daily_avg = top_val = 0
-            top_cat = "-"
-
-        # แสดงผล 5 คอลัมน์ (เรียงจากระยะสั้นไปยาว และปิดด้วยค่าเฉลี่ย/หมวดหลัก)
-        m1, m2, m3, m4, m5 = st.columns(5)
-        
-        m1.metric("Spent Today", f"{total_today:,.0f} ฿")
-        m2.metric("This Week", f"{total_week:,.0f} ฿")
-        m3.metric("Total Month", f"{total_month:,.0f} ฿")
-        m4.metric("Daily Avg", f"{daily_avg:,.0f} ฿") # ดึงกลับมาแล้วครับ!
-        m5.metric("Top Category", str(top_cat), f"{top_val:,.0f} ฿")
-
-        # 2. Charts (Methods & Categories)
-        st.write("---")
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("##### Methods Breakdown")
@@ -151,7 +152,6 @@ if menu == "💸 Cash Flow":
             fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
             st.plotly_chart(fig_pie, use_container_width=True)
 
-        # 3. Recent Transactions (แสดงตารางพร้อมคอมม่า)
         st.write("---")
         st.markdown("#### 📜 Recent Transactions")
         st.dataframe(
