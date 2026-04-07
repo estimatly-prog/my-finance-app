@@ -226,11 +226,11 @@ try:
                 st.progress(progress)
         st.markdown("---")
         
-# --- PORTFOLIO WEALTH SECTION (Updated Logic) ---
-st.markdown("---")
-st.subheader("📈 Portfolio Wealth")
+    # --- PORTFOLIO WEALTH SECTION (Updated Logic) ---
+    st.markdown("---")
+    st.subheader("📈 Portfolio Wealth")
 
-if not df_portfolio.empty:
+    if not df_portfolio.empty:
     # 1. คลีนข้อมูล (แปลง Units และ Price เป็นตัวเลข)
     df_portfolio['Units'] = pd.to_numeric(df_portfolio['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
     df_portfolio['Price_Per_Unit'] = pd.to_numeric(df_portfolio['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
