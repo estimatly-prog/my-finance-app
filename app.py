@@ -263,9 +263,6 @@ try:
 except Exception as e:
     st.error(f"Dashboard Error: {e}")
 
-st.markdown("---")
-st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
-
 # [ตำแหน่ง 7: BOTTOM] - ASSET MANAGEMENT SYSTEM
 st.markdown("---")
 st.subheader("🛠️ Asset Management (Add/Edit/Delete)")
@@ -318,3 +315,6 @@ with st.expander("📝 Manage Your Assets", expanded=False):
             if delete_asset(asset_to_delete):
                 st.success(f"Deleted {asset_to_delete}")
                 st.rerun()
+
+st.markdown("---")
+st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
