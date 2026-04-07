@@ -102,18 +102,41 @@ if menu == "💸 Cash Flow":
         selected_month = st.selectbox("📅 Select Month to Review", month_list)
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
-        # 1. Top Metrics
+    # 1. Top Metrics (Actual Spending: Daily, Weekly, Monthly)
         st.markdown(f"### 💳 Spending Analysis: {selected_month}")
-        total_ex = df_filtered['Amount'].sum()
         
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Total Monthly", f"{total_ex:,.2f} THB")
-        m2.metric("Daily Average", f"{total_ex/30:,.2f} THB")
+        # เตรียมข้อมูลวันที่
+        today = datetime.now().date()
+        start_of_week = today - pd.Timedelta(days=today.weekday()) # เริ่มนับจากวันจันทร์ของสัปดาห์นี้
         
         if not df_filtered.empty:
+            # แปลง Column Date ให้ชัวร์ว่าเป็น date type
+            df_filtered['Date_Only'] = df_filtered['Date'].dt.date
+            
+            # 1. Total Today: รวมยอดเฉพาะของวันนี้
+            total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
+            
+            # 2. Total This Week: รวมยอดตั้งแต่วันจันทร์ที่ผ่านมาถึงวันนี้
+            total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
+            
+            # 3. Total Monthly: ยอดรวมทั้งเดือนที่เลือก
+            total_month = df_filtered['Amount'].sum()
+            
+            # 4. Top Category
             top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
             top_val = df_filtered.groupby('Category')['Amount'].sum().max()
-            m3.metric("Top Spending", str(top_cat), f"{top_val:,.0f} THB")
+        else:
+            total_today = total_week = total_month = top_val = 0
+            top_cat = "-"
+
+        # แสดงผล 4 คอลัมน์ (วันนี้ / สัปดาห์นี้ / เดือนนี้ / จ่ายหนักสุด)
+        m1, m2, m3, m4 = st.columns(4)
+        
+        # ใช้ป้ายกำกับที่ชัดเจนว่า "Spent" (จ่ายไปแล้ว)
+        m1.metric("Spent Today", f"{total_today:,.2f} THB")
+        m2.metric("Spent This Week", f"{total_week:,.2f} THB")
+        m3.metric("Total Monthly", f"{total_month:,.2f} THB")
+        m4.metric("Top Category", str(top_cat), f"{top_val:,.0f} THB")
 
         # 2. Charts (Methods & Categories)
         st.write("---")
