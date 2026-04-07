@@ -241,7 +241,7 @@ try:
         total_v = float(df_portfolio['Value'].sum())
     
         p_col1, p_col2 = st.columns([1, 2])
-            with p_col1:
+        with p_col1:
             st.metric("Total Net Worth", f"{total_v:,.2f} THB")
             # แสดงตารางแบบใหม่ที่มี Units และ Price ด้วย
             st.dataframe(
@@ -250,7 +250,7 @@ try:
             hide_index=True
             )
     
-            with p_col2:
+        with p_col2:
             # กราฟวงกลมแบ่งสัดส่วนสินทรัพย์ (เพื่อให้ดูคูลเหมือนแอปธนาคาร)
             fig_portfolio = px.pie(
             df_portfolio, values='Value', names='Asset_Name', 
