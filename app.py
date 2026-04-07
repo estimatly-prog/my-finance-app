@@ -49,6 +49,16 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D
 with st.sidebar:
     st.markdown("""<div class="brand-container"><span class="custom-icon">👻</span><h1 style="color:white; margin:0;">VELO.</h1></div>""", unsafe_allow_html=True)
     st.write("---")
+    # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
+    st.subheader("⚙️ Settings")
+    daily_target = st.number_input(
+        "Daily Budget Target (฿)", 
+        min_value=100, 
+        max_value=2000, 
+        value=350, 
+        step=50,
+        help="กำหนดเพดานรายจ่ายต่อวันที่คุณต้องการควบคุม"
+    )
     menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "🎯 Goals & Budget"])
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
@@ -77,7 +87,7 @@ if menu == "💸 Cash Flow":
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
         # --- [STEP 1] CONFIG: ความเร็วเป้าหมาย ---
-        DAILY_BUDGET_TARGET = 350  
+        DAILY_BUDGET_TARGET = daily_target 
         
         # --- [STEP 2] CALCULATION LOGIC: ต้องคำนวณให้เสร็จก่อนแสดงผล ---
         today = datetime.now().date()
