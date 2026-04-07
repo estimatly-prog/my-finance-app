@@ -71,7 +71,7 @@ if menu == "💸 Cash Flow":
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
                 date = st.date_input("Date", datetime.now())
-                category = st.selectbox("Category", ["Food", "Beverage", "Dessert", "Transport", "Shopping", "Investment", "Bills", "Movie", "Video Game", "Music", "Others"])
+                category = st.selectbox("Category", ["Food", "Beverage", "Dessert", "7-11, " "Transport", "Shopping", "Investment", "Bills", "Movie", "Video Game", "Music", "Others"])
             with col_f2:
                 amount_str = st.text_input("Amount (THB)", value="", placeholder="e.g. 1,200")
                 payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Cash"])
