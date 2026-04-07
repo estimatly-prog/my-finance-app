@@ -102,6 +102,7 @@ if menu == "💸 Cash Flow":
             
         survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
         # -------------------------------------------
+        st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
         
         # 2. Survival Buffer (คงเดิม)
         m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
