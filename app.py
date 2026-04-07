@@ -66,7 +66,7 @@ except:
 if menu == "💸 Cash Flow":
     st.markdown('<h1 class="app-title">CASH FLOW.</h1>', unsafe_allow_html=True)
     
-    with st.expander("➕ Quick Transaction Entry", expanded=True):
+    with st.expander("➕ Quick Transaction Entry", expanded=False): # ปรับเป็น False เพื่อให้หน้าจอไม่รก
         with st.form("entry_form", clear_on_submit=True):
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
@@ -92,6 +92,7 @@ if menu == "💸 Cash Flow":
                         st.rerun()
                 except: st.error("Please enter a valid number")
 
+    # --- ANALYTICS SECTION (ดึงกลับมาแล้วครับ) ---
     if not df_raw.empty:
         df_raw['Date'] = pd.to_datetime(df_raw['Date'])
         df_raw['Amount'] = pd.to_numeric(df_raw['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
@@ -101,15 +102,45 @@ if menu == "💸 Cash Flow":
         selected_month = st.selectbox("📅 Select Month to Review", month_list)
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
-        c1, c2, c3 = st.columns(3)
+        # 1. Top Metrics
+        st.markdown(f"### 💳 Spending Analysis: {selected_month}")
         total_ex = df_filtered['Amount'].sum()
-        c1.metric("Total Spending", f"{total_ex:,.2f} THB")
-        c2.metric("Daily Avg", f"{total_ex/30:,.2f} THB")
-        c3.metric("Transactions", len(df_filtered))
+        
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Total Monthly", f"{total_ex:,.2f} THB")
+        m2.metric("Daily Average", f"{total_ex/30:,.2f} THB")
+        
+        if not df_filtered.empty:
+            top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
+            top_val = df_filtered.groupby('Category')['Amount'].sum().max()
+            m3.metric("Top Spending", str(top_cat), f"{top_val:,.0f} THB")
 
+        # 2. Charts (Methods & Categories)
+        st.write("---")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("##### Methods Breakdown")
+            pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
+            fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300)
+            st.plotly_chart(fig_bar, use_container_width=True)
+        with c2:
+            st.markdown("##### Category Distribution")
+            cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
+            fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        # 3. Recent Transactions (แสดงตารางพร้อมคอมม่า)
+        st.write("---")
         st.markdown("#### 📜 Recent Transactions")
-        st.dataframe(df_filtered.sort_values('Date', ascending=False), use_container_width=True, hide_index=True)
-
+        st.dataframe(
+            df_filtered.sort_values('Date', ascending=False),
+            column_config={
+                "Amount": st.column_config.NumberColumn(format="฿%,.2f"),
+                "Date": st.column_config.DateColumn(format="DD/MM/YYYY")
+            },
+            use_container_width=True, 
+            hide_index=True
+        )
 # --- PAGE 2: WEALTH PORTFOLIO ---
 elif menu == "📈 Wealth Portfolio":
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
