@@ -276,9 +276,9 @@ with st.expander("📝 Manage Your Assets", expanded=False):
         with col_a2:
             a_type = st.selectbox("Type", ["Stock", "Crypto", "Cash", "Gold", "Real Estate"])
         with col_a3:
-            a_units = st.number_input("Units", min_value=0.0, step=0.01)
+            a_units = st.number_input("Units", min_value=0, step=1, value=0)
         with col_a4:
-            a_price = st.number_input("Price per Unit", min_value=0.0, step=0.1)
+            a_price = st.number_input("Price per Unit", min_value=0, step=1, value=0)
         
         a_note = st.text_input("Note (Optional)")
         a_submitted = st.form_submit_button("Save Asset")
