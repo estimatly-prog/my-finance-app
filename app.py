@@ -102,41 +102,40 @@ if menu == "💸 Cash Flow":
         selected_month = st.selectbox("📅 Select Month to Review", month_list)
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
-    # 1. Top Metrics (Actual Spending: Daily, Weekly, Monthly)
+    # 1. Top Metrics (Actual Spending & Velocity Analysis)
         st.markdown(f"### 💳 Spending Analysis: {selected_month}")
         
-        # เตรียมข้อมูลวันที่
         today = datetime.now().date()
-        start_of_week = today - pd.Timedelta(days=today.weekday()) # เริ่มนับจากวันจันทร์ของสัปดาห์นี้
+        start_of_week = today - pd.Timedelta(days=today.weekday())
         
         if not df_filtered.empty:
-            # แปลง Column Date ให้ชัวร์ว่าเป็น date type
             df_filtered['Date_Only'] = df_filtered['Date'].dt.date
             
-            # 1. Total Today: รวมยอดเฉพาะของวันนี้
+            # --- ยอดรวมจ่ายจริง (Actual) ---
             total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
-            
-            # 2. Total This Week: รวมยอดตั้งแต่วันจันทร์ที่ผ่านมาถึงวันนี้
             total_week = df_filtered[df_filtered['Date_Only'] >= start_of_week]['Amount'].sum()
-            
-            # 3. Total Monthly: ยอดรวมทั้งเดือนที่เลือก
             total_month = df_filtered['Amount'].sum()
             
-            # 4. Top Category
+            # --- ค่าเฉลี่ย (Velocity) ---
+            # คำนวณตามจำนวนวันในเดือนนั้นจริง ๆ (เช่น 28, 30, 31 วัน)
+            num_days_in_month = df_filtered['Date'].dt.days_in_month.iloc[0]
+            daily_avg = total_month / num_days_in_month
+            
+            # --- หมวดหมู่หลัก ---
             top_cat = df_filtered.groupby('Category')['Amount'].sum().idxmax()
             top_val = df_filtered.groupby('Category')['Amount'].sum().max()
         else:
-            total_today = total_week = total_month = top_val = 0
+            total_today = total_week = total_month = daily_avg = top_val = 0
             top_cat = "-"
 
-        # แสดงผล 4 คอลัมน์ (วันนี้ / สัปดาห์นี้ / เดือนนี้ / จ่ายหนักสุด)
-        m1, m2, m3, m4 = st.columns(4)
+        # แสดงผล 5 คอลัมน์ (เรียงจากระยะสั้นไปยาว และปิดด้วยค่าเฉลี่ย/หมวดหลัก)
+        m1, m2, m3, m4, m5 = st.columns(5)
         
-        # ใช้ป้ายกำกับที่ชัดเจนว่า "Spent" (จ่ายไปแล้ว)
-        m1.metric("Spent Today", f"{total_today:,.2f} THB")
-        m2.metric("Spent This Week", f"{total_week:,.2f} THB")
-        m3.metric("Total Monthly", f"{total_month:,.2f} THB")
-        m4.metric("Top Category", str(top_cat), f"{top_val:,.0f} THB")
+        m1.metric("Spent Today", f"{total_today:,.0f} ฿")
+        m2.metric("This Week", f"{total_week:,.0f} ฿")
+        m3.metric("Total Month", f"{total_month:,.0f} ฿")
+        m4.metric("Daily Avg", f"{daily_avg:,.0f} ฿") # ดึงกลับมาแล้วครับ!
+        m5.metric("Top Category", str(top_cat), f"{top_val:,.0f} ฿")
 
         # 2. Charts (Methods & Categories)
         st.write("---")
