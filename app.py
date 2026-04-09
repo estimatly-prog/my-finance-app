@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 import plotly.express as px
+import time
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
@@ -150,17 +151,42 @@ if menu == "💸 Cash Flow":
             
             if submitted:
                 try:
+                    # แปลงค่าจาก Text เป็นตัวเลข
                     amount = float(amount_str.replace(',', '')) if amount_str else 0.0
+                    
                     if amount > 0:
-                        conn = st.connection("gsheets", type=GSheetsConnection)
-                        existing_data = conn.read(worksheet="Expenses", ttl=0)
-                        new_entry = pd.DataFrame([{"Date": date.strftime("%Y-%m-%d"), "Category": category, "Amount": amount, "Note": note, "Payment_Method": payment}])
-                        updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
-                        conn.update(worksheet="Expenses", data=updated_df)
-                        st.success("Saved Successfully!")
+                        # --- 1. แสดงสถานะระหว่างบันทึก (UX Improvement) ---
+                        with st.status("🚀 Processing Transaction...", expanded=False) as status:
+                            conn = st.connection("gsheets", type=GSheetsConnection)
+                            existing_data = conn.read(worksheet="Expenses", ttl=0)
+                            
+                            new_entry = pd.DataFrame([{
+                                "Date": date.strftime("%Y-%m-%d"), 
+                                "Category": category, 
+                                "Amount": amount, 
+                                "Note": note, 
+                                "Payment_Method": payment
+                            }])
+                            
+                            updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
+                            conn.update(worksheet="Expenses", data=updated_df)
+                            
+                            # อัปเดตสถานะเมื่อเสร็จ
+                            status.update(label="✅ Data Saved to Google Sheets!", state="complete", expanded=False)
+                        
+                        # --- 2. แจ้งเตือน Pop-up มุมขวา ---
+                        st.toast(f"บันทึก {category}: {amount:,.2f} ฿ เรียบร้อย!", icon='✅')
+                        
+                        # --- 3. หน่วงเวลาเล็กน้อยให้ User เห็นข้อความความสำเร็จ ---
+                        time.sleep(1.2)
+                        
+                        # --- 4. สั่งรีเฟรชหน้าจอเพื่อให้ Metrics คำนวณใหม่ทันที ---
                         st.rerun()
-                except: st.error("Please enter a valid number")
-
+                        
+                    else:
+                        st.warning("⚠️ กรุณาใส่จำนวนเงินที่มากกว่า 0")
+                except Exception as e:
+                    st.error(f"❌ เกิดข้อผิดพลาด: {e}")
     # 3. 📊 VISUAL ANALYTICS & HISTORY
     if not df_raw.empty:
         c1, c2 = st.columns(2)
