@@ -117,6 +117,62 @@ if menu == "💸 Cash Flow":
         # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
         m1, m2, m3, m4 = st.columns(4)
+
+        st.write("---")
+        st.markdown("##### 📈 Spending Trend vs Budget")
+        
+        # 1. เตรียมข้อมูล Cumulative Data
+        # สร้าง DataFrame ของทุกวันในเดือนนี้
+        last_day = df_filtered['Date'].dt.days_in_month.iloc[0]
+        date_range = pd.date_range(start=df_filtered['Date'].min().replace(day=1), 
+                                  periods=last_day, freq='D')
+        
+        daily_df = pd.DataFrame({'Date': date_range})
+        daily_df['Date_Only'] = daily_df['Date'].dt.date
+        
+        # รวมยอดใช้จ่ายรายวันจริง
+        actual_daily = df_filtered.groupby('Date_Only')['Amount'].sum().reset_index()
+        
+        # Merge และคำนวณยอดสะสม
+        chart_data = pd.merge(daily_df, actual_daily, on='Date_Only', how='left').fillna(0)
+        chart_data['Cumulative_Actual'] = chart_data['Amount'].cumsum()
+        
+        # คำนวณเส้นงบประมาณสะสม (Dynamic ตาม DAILY_BUDGET_TARGET)
+        chart_data['Cumulative_Budget'] = (chart_data.index + 1) * DAILY_BUDGET_TARGET
+        
+        # 2. สร้างกราฟด้วย Plotly แบบมินิมอล
+        import plotly.graph_objects as go
+        
+        fig_trend = go.Figure()
+        
+        # พื้นที่ยอดใช้จริง
+        fig_trend.add_trace(go.Scatter(
+            x=chart_data['Date'], y=chart_data['Cumulative_Actual'],
+            fill='tozeroy', name='Actual Spend',
+            line=dict(color='#00D1FF', width=3),
+            fillcolor='rgba(0, 209, 255, 0.1)'
+        ))
+        
+        # เส้นงบประมาณ
+        fig_trend.add_trace(go.Scatter(
+            x=chart_data['Date'], y=chart_data['Cumulative_Budget'],
+            name='Budget Limit',
+            line=dict(color='rgba(255, 255, 255, 0.3)', width=2, dash='dot')
+        ))
+        
+        fig_trend.update_layout(
+            hovermode="x unified",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=0, r=0, t=20, b=0),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(showgrid=False),
+            xaxis=dict(showgrid=False)
+        )
+        
+        st.plotly_chart(fig_trend, use_container_width=True)
         
         # Total Spent: เทียบกับงบสะสม
         target_so_far = DAILY_BUDGET_TARGET * num_days_passed
