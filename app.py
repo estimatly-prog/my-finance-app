@@ -226,7 +226,7 @@ elif menu == "📈 Wealth Portfolio":
         st.metric("Total Net Worth", f"{total_v:,.2f} THB")
 
         # 2. Advanced Table View
-        st.markdown("#### 💎 Asset Details")
+        st.markdown("####Asset Details")
         st.dataframe(
             df_portfolio,
             column_config={
