@@ -55,7 +55,7 @@ with st.sidebar:
         "Daily Budget Target (฿)", 
         min_value=100, 
         max_value=2000, 
-        value=350, 
+        value=300, 
         step=50,
         help="กำหนดเพดานรายจ่ายต่อวันที่คุณต้องการควบคุม"
     )
