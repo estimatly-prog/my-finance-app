@@ -341,19 +341,18 @@ elif menu == "📈 Wealth Portfolio":
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
                 
-# --- PAGE: REWARD TRACKING (Point Intelligence Engine & Micro-Minimalist Digital Wallet) ---
+# --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
     st.markdown('<h1 class="app-title">MY WALLET.</h1>', unsafe_allow_html=True)
     
     if not df_master.empty and not df_raw.empty:
-        # 1. Calculation Logic (ประมวลผลแต้ม - เหมือนเดิม)
+        # 1. Calculation Logic
         points_summary = []
         for _, card in df_master.iterrows():
             card_name = card['Card_Name']
             base_ratio = card['Point_Ratio'] if card['Point_Ratio'] > 0 else 25
             starting_pts = card['Starting_Points']
-            # หากไม่มีรูป ให้ใช้รูป Placeholder สีเทาๆ
-            img_url = card.get('Card_Image', 'https://via.placeholder.com/300x190?text=VELO.') 
+            img_url = card.get('Card_Image', 'https://via.placeholder.com/300x190?text=VELO.')
             
             card_tx = df_raw[df_raw['Payment_Method'] == card_name].copy()
             new_points = 0
@@ -362,13 +361,12 @@ elif menu == "💳 Reward Tracking":
                 cat = tx.get('Category', 'Others')
                 note = str(tx.get('Note', '')).lower()
                 
-                # Logic หาตัวคูณ
                 multiplier = 1
                 import re
                 match = re.search(r'x(\d+)', note)
                 if match:
                     multiplier = int(match.group(1))
-                else:
+                elif 'df_rules' in locals():
                     rules = df_rules[df_rules['Card_Name'] == card_name]
                     cat_rule = rules[rules['Category'] == cat]
                     if not cat_rule.empty:
@@ -380,51 +378,52 @@ elif menu == "💳 Reward Tracking":
                 
                 new_points += (amt / base_ratio) * multiplier
             
-            total_pts = starting_pts + new_points
             points_summary.append({
-                "Card": card_name, 
-                "Total": total_pts, 
-                "New": new_points,
-                "Image": img_url
+                "Card": card_name, "Total": starting_pts + new_points, 
+                "New": new_points, "Image": img_url
             })
 
-        # 2. Display Micro-Minimalist Digital Wallet (Layout แบบข้างกันและรูปเท่ากัน)
+        # 2. Display Section
         st.markdown("#### 💎 Card Inventory")
-        # แบ่งแถวละ 2 คอลัมน์
         cards_per_row = 2
-        rows = [points_summary[i:i+cards_per_row] for i in range(0, len(points_summary), cards_per_row)]
-        
-        for row in rows:
+        for i in range(0, len(points_summary), cards_per_row):
             cols = st.columns(cards_per_row)
-            for idx, p in enumerate(row):
+            for idx, p in enumerate(points_summary[i:i+cards_per_row]):
                 with cols[idx]:
-                    # --- [แก้ไข] ปรับปรุง CSS เพื่อให้รูปเท่ากันและกะทัดรัด (Compact) ที่สุด ---
-                    st.markdown(f"""
-                        <div style="background-color: #121212; border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid #222; display: flex; align-items: center; justify-content: start; min-height: 80px;">
-                            
-                            <img src="{p['Image']}" style="width: 35%; border-radius: 6px; margin-right: 15px; aspect-ratio: 1.58/1; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
-                            
-                            <div style="padding: 0 4px; overflow: hidden;">
-                                <p style="color: #999; margin: 0; font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['Card']}</p>
-                                
-                                <h3 style="color: white; margin: 2px 0; font-size: 1.5rem; font-weight: 700; display: inline-block;">
-                                    {p['Total']:,.0f}
-                                    <span style="font-size: 0.75rem; color: #00D1FF; font-weight: 400; vertical-align: middle; margin-left: 2px;">PTS</span>
-                                </h3>
-                                
-                                <p style="color: #00D1FF; margin: 0; font-size: 0.75rem; font-weight: 400; opacity: 0.9;">
-                                    ▲ +{p['New']:,.0f} from activities
-                                </p>
-                            </div>
+                    # ใช้ f-string ประกอบร่าง HTML แบบระมัดระวัง Tag
+                    html_code = f"""
+                    <div style="background-color: #121212; border-radius: 12px; padding: 12px; margin-bottom: 15px; border: 1px solid #222; display: flex; align-items: center; min-height: 90px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                        <div style="width: 40%; margin-right: 12px;">
+                            <img src="{p['Image']}" style="width: 100%; border-radius: 6px; aspect-ratio: 1.58/1; object-fit: cover;">
                         </div>
-                    """, unsafe_allow_html=True)
+                        <div style="width: 60%; overflow: hidden;">
+                            <p style="color: #888; margin: 0; font-size: 0.7rem; font-weight: 500; text-transform: uppercase;">{p['Card']}</p>
+                            <h3 style="color: white; margin: 2px 0; font-size: 1.4rem; font-weight: 700;">
+                                {p['Total']:,.0f} <span style="font-size: 0.7rem; color: #00D1FF;">PTS</span>
+                            </h3>
+                            <p style="color: #00D1FF; margin: 0; font-size: 0.7rem;">▲ +{p['New']:,.0f}</p>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(html_code, unsafe_allow_html=True)
 
-        # 3. Social Point Insight (ส่วนด้านล่าง - เหมือนเดิม)
+        # 3. Insights
         st.write("---")
-        # ... (ส่วน Relationship/Refund เดิมของคุณ) ...
+        st.markdown("#### 🤝 Relationship Strategy")
+        c1, c2 = st.columns(2)
+        with c1:
+            if 'Relationship' in df_raw.columns:
+                rel_sum = df_raw.groupby('Relationship')['Total_Bill'].sum().reset_index()
+                fig_rel = px.pie(rel_sum, values='Total_Bill', names='Relationship', hole=0.6, template="plotly_dark")
+                fig_rel.update_layout(margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
+                st.plotly_chart(fig_rel, use_container_width=True)
+        with c2:
+            if 'Refund_Amount' in df_raw.columns:
+                refund_df = df_raw[df_raw['Refund_Amount'] > 0].groupby('Relationship')[['Total_Bill', 'Refund_Amount']].sum().reset_index()
+                st.dataframe(refund_df, use_container_width=True, hide_index=True)
     else:
-        st.info("กรุณากรอกข้อมูลในหน้า Expenses และตั้งค่าหน้า Cards_Master ให้เรียบร้อยครับ")
-
+        st.info("ไม่พบข้อมูลในระบบ")
+        
 # --- PAGE: GOALS & BUDGET ---
 elif menu == "🎯 Goals & Budget":
     st.markdown('<h1 class="app-title">TARGETS.</h1>', unsafe_allow_html=True)
