@@ -283,6 +283,31 @@ if menu == "💸 Cash Flow":
             use_container_width=True, 
             hide_index=True
         )
+        
+# --- ADD THIS TO THE BOTTOM OF PAGE: CASH FLOW ---
+st.write("---")
+st.markdown("### 🫂 Lifestyle & Connection")
+
+# กรองดูยอดที่เราจ่ายไปจริงๆ (Actual Paid) แยกตามความสัมพันธ์
+if 'Relationship' in df_raw.columns:
+    lifestyle_df = df_raw.groupby('Relationship')['Actual_Paid'].sum().reset_index()
+    
+    # หายอดที่ใช้กับ "แฟน" ออกมาโชว์เป็น Metric เด่นๆ
+    partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
+    
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
+        st.caption("เดือนนี้ใช้เวลา (และเงิน) ร่วมกับแฟนไปประมาณนี้ครับ")
+        
+    with c2:
+        # กราฟวงกลมเล็กๆ ดูสัดส่วนคนรอบข้าง
+        fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
+                          hole=0.7, color_discrete_sequence=px.colors.sequential.Tealgrn)
+        fig_life.update_layout(margin=dict(l=0, r=0, t=0, b=0), showlegend=True)
+        st.plotly_chart(fig_life, use_container_width=True)
+
+
 # --- PAGE 2: WEALTH PORTFOLIO ---
 elif menu == "📈 Wealth Portfolio":
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
@@ -341,28 +366,6 @@ elif menu == "📈 Wealth Portfolio":
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
 
-    # --- ADD THIS TO THE BOTTOM OF PAGE: CASH FLOW ---
-st.write("---")
-st.markdown("### 🫂 Lifestyle & Connection")
-
-# กรองดูยอดที่เราจ่ายไปจริงๆ (Actual Paid) แยกตามความสัมพันธ์
-if 'Relationship' in df_raw.columns:
-    lifestyle_df = df_raw.groupby('Relationship')['Actual_Paid'].sum().reset_index()
-    
-    # หายอดที่ใช้กับ "แฟน" ออกมาโชว์เป็น Metric เด่นๆ
-    partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
-    
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
-        st.caption("เดือนนี้ใช้เวลา (และเงิน) ร่วมกับแฟนไปประมาณนี้ครับ")
-        
-    with c2:
-        # กราฟวงกลมเล็กๆ ดูสัดส่วนคนรอบข้าง
-        fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
-                          hole=0.7, color_discrete_sequence=px.colors.sequential.Tealgrn)
-        fig_life.update_layout(margin=dict(l=0, r=0, t=0, b=0), showlegend=True)
-        st.plotly_chart(fig_life, use_container_width=True)
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
     st.markdown('<h1 class="app-title">MY WALLET.</h1>', unsafe_allow_html=True)
