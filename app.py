@@ -60,7 +60,7 @@ with st.sidebar:
         step=50,
         help="กำหนดเพดานรายจ่ายต่อวันที่คุณต้องการควบคุม"
     )
-    menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "🎯 Goals & Budget"])
+    menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "💳 Reward Tracking", "🎯 Goals & Budget"])
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
@@ -70,6 +70,8 @@ try:
     df_portfolio = load_public_data(SHEET_URL, "1218817484")
     df_budget = load_public_data(SHEET_URL, "2055623351")
     df_goals = load_public_data(SHEET_URL, "1271566138")
+    df_master = load_public_data(SHEET_URL, "687236707")
+    df_rules = load_public_data(SHEET_URL, "700317739")
 except:
     st.error("Connection Error")
 
@@ -338,7 +340,77 @@ elif menu == "📈 Wealth Portfolio":
         to_del = st.selectbox("Select Asset to Remove", df_portfolio['Asset_Name'].unique())
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
+                
+# --- PAGE: REWARD TRACKING (Point Intelligence Engine) ---
+elif menu == "💳 Reward Tracking":
+    st.markdown('<h1 class="app-title">REWARDS.</h1>', unsafe_allow_html=True)
+    
+    if not df_master.empty and not df_raw.empty:
+        # 1. Calculation Logic (Internal Engine)
+        points_summary = []
+        
+        for _, card in df_master.iterrows():
+            card_name = card['Card_Name']
+            base_ratio = card['Point_Ratio']
+            starting_pts = card['Starting_Points']
+            
+            # กรองยอดรูดจาก Expenses (ใช้ Total_Bill)
+            card_tx = df_raw[df_raw['Payment_Method'] == card_name].copy()
+            
+            new_points = 0
+            for _, tx in card_tx.iterrows():
+                amt = tx['Total_Bill']
+                cat = tx['Category']
+                note = str(tx['Note']).lower()
+                
+                # Logic หาตัวคูณ: 1. Note Keyword (x5) -> 2. Category Rule -> 3. ALL Rule -> 4. Base (x1)
+                multiplier = 1
+                import re
+                match = re.search(r'x(\d+)', note)
+                
+                if match:
+                    multiplier = int(match.group(1))
+                else:
+                    rules = df_rules[df_rules['Card_Name'] == card_name]
+                    cat_rule = rules[rules['Category'] == cat]
+                    if not cat_rule.empty:
+                        multiplier = cat_rule['Multiplier'].iloc[0]
+                    else:
+                        all_rule = rules[rules['Category'] == 'ALL']
+                        if not all_rule.empty:
+                            multiplier = all_rule['Multiplier'].iloc[0]
+                
+                new_points += (amt / base_ratio) * multiplier
+            
+            total_pts = starting_pts + new_points
+            points_summary.append({"Card": card_name, "Total Points": total_pts, "New Points": new_points})
 
+        # 2. Display Metrics (แบบตัวใหญ่สะใจ)
+        st.markdown("#### 💎 Live Points Balance")
+        p_cols = st.columns(len(points_summary))
+        for idx, p in enumerate(points_summary):
+            p_cols[idx].metric(p['Card'], f"{p['Total Points']:,.0f}", delta=f"+{p['New Points']:,.0f}")
+
+        # 3. Relationship Insight (ใครช่วยเราปั่นแต้ม?)
+        st.write("---")
+        st.markdown("#### 🤝 Social Point Strategy")
+        c1, c2 = st.columns(2)
+        
+        with c1:
+            # ยอดรูดแยกตามความสัมพันธ์
+            rel_sum = df_raw.groupby('Relationship')['Total_Bill'].sum().reset_index()
+            fig_rel = px.pie(rel_sum, values='Total_Bill', names='Relationship', hole=0.5, 
+                             title="Who generates your points?", template="plotly_dark")
+            st.plotly_chart(fig_rel, use_container_width=True)
+            
+        with c2:
+            # ตารางสรุปยอดหาร (ใครยังติดเงินเราบ้าง หรือช่วยรูดไปเท่าไหร่)
+            st.markdown("##### Refund Status Tracker")
+            refund_df = df_raw[df_raw['Refund_Amount'] > 0].groupby('Relationship')[['Total_Bill', 'Refund_Amount']].sum().reset_index()
+            st.dataframe(refund_df, use_container_width=True, hide_index=True)
+            
+    else:
+        st.info("กรุณากรอกข้อมูลในหน้า Expenses และตั้งค่าหน้า Cards_Master ให้เรียบร้อยครับ")
 # --- PAGE 3: GOALS & BUDGET ---
 elif menu == "🎯 Goals & Budget":
     st.markdown('<h1 class="app-title">TARGETS.</h1>', unsafe_allow_html=True)
