@@ -352,7 +352,8 @@ elif menu == "💳 Reward Tracking":
             card_name = card['Card_Name']
             base_ratio = card['Point_Ratio'] if card['Point_Ratio'] > 0 else 25
             starting_pts = card['Starting_Points']
-            img_url = card.get('Card_Image', 'https://via.placeholder.com/300x190?text=No+Image')
+            # หากไม่มีรูป ให้ใช้รูป Placeholder สีเทาๆ
+            img_url = card.get('Card_Image', 'https://via.placeholder.com/300x190?text=VELO.') 
             
             card_tx = df_raw[df_raw['Payment_Method'] == card_name].copy()
             new_points = 0
@@ -387,9 +388,9 @@ elif menu == "💳 Reward Tracking":
                 "Image": img_url
             })
 
-        # 2. Display Micro-Minimalist Digital Wallet (Layout แบบข้างกันเพื่อให้รูปเล็ก)
+        # 2. Display Micro-Minimalist Digital Wallet (Layout แบบข้างกันและรูปเท่ากัน)
         st.markdown("#### 💎 Card Inventory")
-        # --- เปลี่ยนจาก 3 เป็น 2 คอลัมน์ เพื่อให้ Layout ข้างกันเห็นชัด ---
+        # แบ่งแถวละ 2 คอลัมน์
         cards_per_row = 2
         rows = [points_summary[i:i+cards_per_row] for i in range(0, len(points_summary), cards_per_row)]
         
@@ -397,15 +398,16 @@ elif menu == "💳 Reward Tracking":
             cols = st.columns(cards_per_row)
             for idx, p in enumerate(row):
                 with cols[idx]:
-                    # --- ปรับปรุง CSS ให้กะทัดรัด (Compact) ที่สุด ---
+                    # --- [แก้ไข] ปรับปรุง CSS เพื่อให้รูปเท่ากันและกะทัดรัด (Compact) ที่สุด ---
                     st.markdown(f"""
-                        <div style="background-color: #121212; border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid #222; display: flex; align-items: center; justify-content: start;">
-                            <img src="{p['Image']}" style="width: 40%; border-radius: 8px; margin-right: 15px; aspect-ratio: 1.58/1; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                        <div style="background-color: #121212; border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid #222; display: flex; align-items: center; justify-content: start; min-height: 80px;">
                             
-                            <div style="padding: 0 4px;">
-                                <p style="color: #999; margin: 0; font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">{p['Card']}</p>
+                            <img src="{p['Image']}" style="width: 35%; border-radius: 6px; margin-right: 15px; aspect-ratio: 1.58/1; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                            
+                            <div style="padding: 0 4px; overflow: hidden;">
+                                <p style="color: #999; margin: 0; font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['Card']}</p>
                                 
-                                <h3 style="color: white; margin: 2px 0; font-size: 1.6rem; font-weight: 700; display: inline-block;">
+                                <h3 style="color: white; margin: 2px 0; font-size: 1.5rem; font-weight: 700; display: inline-block;">
                                     {p['Total']:,.0f}
                                     <span style="font-size: 0.75rem; color: #00D1FF; font-weight: 400; vertical-align: middle; margin-left: 2px;">PTS</span>
                                 </h3>
