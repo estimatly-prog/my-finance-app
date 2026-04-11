@@ -284,40 +284,6 @@ if menu == "💸 Cash Flow":
             hide_index=True
         )
 
-        # --- LIFESTYLE & CONNECTION INSIGHT (ย้ายมาอยู่ในนี้เพื่อให้ Syntax ถูกต้อง) ---
-        st.write("---")
-        st.markdown("### 🫂 Lifestyle & Connection Insight")
-        
-        analysis_df = df_raw.copy()
-        if 'Actual_Paid' not in analysis_df.columns:
-            analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
-        
-        if 'Relationship' in analysis_df.columns:
-            lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
-            partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
-            
-            lc1, lc2 = st.columns([1, 2])
-            with lc1:
-                st.markdown("##### Partner Spending")
-                st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
-                st.caption("ยอดเงินที่คุณจ่ายจริงเมื่ออยู่กับแฟน")
-                total_actual = analysis_df['Actual_Paid'].sum()
-                if total_actual > 0:
-                    ratio = (partner_spend / total_actual) * 100
-                    st.write(f"คิดเป็น **{ratio:.1f}%** ของรายจ่ายทั้งหมด")
-            
-            with lc2:
-                fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
-                                  hole=0.6, color_discrete_sequence=px.colors.sequential.Mint_r,
-                                  template="plotly_dark")
-                fig_life.update_layout(margin=dict(l=0, r=0, t=20, b=0), showlegend=True,
-                                      legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
-                st.plotly_chart(fig_life, use_container_width=True)
-        else:
-            st.warning("⚠️ ไม่พบข้อมูล 'Relationship' ใน Google Sheets")
-
-    else:
-        st.info("กรอกข้อมูลการใช้จ่ายก่อน เพื่อดู Insight ความสัมพันธ์ครับ")
 
 # --- หลังจากจบเงื่อนไขหน้า Cash Flow (ไม่มี Else คั่นกลางแล้ว) หน้าถัดไปถึงจะใช้ ELIF ได้ ---
 elif menu == "📈 Wealth Portfolio":
