@@ -286,26 +286,55 @@ if menu == "💸 Cash Flow":
         
 # --- ADD THIS TO THE BOTTOM OF PAGE: CASH FLOW ---
 st.write("---")
-st.markdown("### 🫂 Lifestyle & Connection")
+st.markdown("### 🫂 Lifestyle & Connection Insight")
 
-# กรองดูยอดที่เราจ่ายไปจริงๆ (Actual Paid) แยกตามความสัมพันธ์
-if 'Relationship' in df_raw.columns:
-    lifestyle_df = df_raw.groupby('Relationship')['Actual_Paid'].sum().reset_index()
+if not df_raw.empty:
+    # สร้าง Copy เพื่อป้องกันการไปกระทบ Data หลัก
+    analysis_df = df_raw.copy()
     
-    # หายอดที่ใช้กับ "แฟน" ออกมาโชว์เป็น Metric เด่นๆ
-    partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
+    # 1. ตรวจสอบและสร้างคอลัมน์ Actual_Paid (ยอดเต็ม - ยอดหาร)
+    if 'Actual_Paid' not in analysis_df.columns:
+        analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
     
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
-        st.caption("เดือนนี้ใช้เวลา (และเงิน) ร่วมกับแฟนไปประมาณนี้ครับ")
+    # 2. ตรวจสอบว่ามีคอลัมน์ Relationship ไหม
+    if 'Relationship' in analysis_df.columns:
+        # รวมยอดตามความสัมพันธ์
+        lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
         
-    with c2:
-        # กราฟวงกลมเล็กๆ ดูสัดส่วนคนรอบข้าง
-        fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
-                          hole=0.7, color_discrete_sequence=px.colors.sequential.Tealgrn)
-        fig_life.update_layout(margin=dict(l=0, r=0, t=0, b=0), showlegend=True)
-        st.plotly_chart(fig_life, use_container_width=True)
+        # ดึงยอดเฉพาะของ "แฟน"
+        partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
+        
+        # --- การแสดงผล ---
+        c1, c2 = st.columns([1, 2])
+        
+        with c1:
+            st.markdown("##### Partner Spending")
+            st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
+            st.caption("ยอดเงินที่คุณจ่ายจริงเมื่ออยู่กับแฟน (หักยอดหารแล้ว)")
+            
+            # เสริม Insight นิดนึง
+            total_actual = analysis_df['Actual_Paid'].sum()
+            if total_actual > 0:
+                ratio = (partner_spend / total_actual) * 100
+                st.write(f"คิดเป็น **{ratio:.1f}%** ของรายจ่ายทั้งหมด")
+        
+        with c2:
+            # กราฟวงกลมดูสัดส่วน
+            fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
+                              hole=0.6, 
+                              color_discrete_sequence=px.colors.sequential.Mint_r,
+                              template="plotly_dark")
+            
+            fig_life.update_layout(
+                margin=dict(l=0, r=0, t=20, b=0),
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+            )
+            st.plotly_chart(fig_life, use_container_width=True)
+    else:
+        st.warning("⚠️ ไม่พบข้อมูล 'Relationship' ใน Google Sheets กรุณาตรวจสอบหัวตารางครับ")
+else:
+    st.info("กรอกข้อมูลการใช้จ่ายก่อน เพื่อดู Insight ความสัมพันธ์ครับ")
 
 
 # --- PAGE 2: WEALTH PORTFOLIO ---
