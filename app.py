@@ -258,7 +258,7 @@ if menu == "💸 Cash Flow":
                         st.warning("⚠️ กรุณาใส่ยอดเงินในช่อง Total Bill")
                 except Exception as e:
                     st.error(f"❌ เกิดข้อผิดพลาด: {e}")
-    # 3. 📊 VISUAL ANALYTICS & HISTORY
+# 3. 📊 VISUAL ANALYTICS & HISTORY
     if not df_raw.empty:
         c1, c2 = st.columns(2)
         with c1:
@@ -283,63 +283,46 @@ if menu == "💸 Cash Flow":
             use_container_width=True, 
             hide_index=True
         )
-        
-# --- ADD THIS TO THE BOTTOM OF PAGE: CASH FLOW ---
-st.write("---")
-st.markdown("### 🫂 Lifestyle & Connection Insight")
 
-if not df_raw.empty:
-    # สร้าง Copy เพื่อป้องกันการไปกระทบ Data หลัก
-    analysis_df = df_raw.copy()
-    
-    # 1. ตรวจสอบและสร้างคอลัมน์ Actual_Paid (ยอดเต็ม - ยอดหาร)
-    if 'Actual_Paid' not in analysis_df.columns:
-        analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
-    
-    # 2. ตรวจสอบว่ามีคอลัมน์ Relationship ไหม
-    if 'Relationship' in analysis_df.columns:
-        # รวมยอดตามความสัมพันธ์
-        lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
+        # --- LIFESTYLE & CONNECTION INSIGHT (ย้ายมาอยู่ในนี้เพื่อให้ Syntax ถูกต้อง) ---
+        st.write("---")
+        st.markdown("### 🫂 Lifestyle & Connection Insight")
         
-        # ดึงยอดเฉพาะของ "แฟน"
-        partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
+        analysis_df = df_raw.copy()
+        if 'Actual_Paid' not in analysis_df.columns:
+            analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
         
-        # --- การแสดงผล ---
-        c1, c2 = st.columns([1, 2])
-        
-        with c1:
-            st.markdown("##### Partner Spending")
-            st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
-            st.caption("ยอดเงินที่คุณจ่ายจริงเมื่ออยู่กับแฟน (หักยอดหารแล้ว)")
+        if 'Relationship' in analysis_df.columns:
+            lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
+            partner_spend = lifestyle_df[lifestyle_df['Relationship'] == 'แฟน']['Actual_Paid'].sum()
             
-            # เสริม Insight นิดนึง
-            total_actual = analysis_df['Actual_Paid'].sum()
-            if total_actual > 0:
-                ratio = (partner_spend / total_actual) * 100
-                st.write(f"คิดเป็น **{ratio:.1f}%** ของรายจ่ายทั้งหมด")
-        
-        with c2:
-            # กราฟวงกลมดูสัดส่วน
-            fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
-                              hole=0.6, 
-                              color_discrete_sequence=px.colors.sequential.Mint_r,
-                              template="plotly_dark")
+            lc1, lc2 = st.columns([1, 2])
+            with lc1:
+                st.markdown("##### Partner Spending")
+                st.metric("Total with Partner", f"{partner_spend:,.0f} THB")
+                st.caption("ยอดเงินที่คุณจ่ายจริงเมื่ออยู่กับแฟน")
+                total_actual = analysis_df['Actual_Paid'].sum()
+                if total_actual > 0:
+                    ratio = (partner_spend / total_actual) * 100
+                    st.write(f"คิดเป็น **{ratio:.1f}%** ของรายจ่ายทั้งหมด")
             
-            fig_life.update_layout(
-                margin=dict(l=0, r=0, t=20, b=0),
-                showlegend=True,
-                legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
-            )
-            st.plotly_chart(fig_life, use_container_width=True)
+            with lc2:
+                fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
+                                  hole=0.6, color_discrete_sequence=px.colors.sequential.Mint_r,
+                                  template="plotly_dark")
+                fig_life.update_layout(margin=dict(l=0, r=0, t=20, b=0), showlegend=True,
+                                      legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
+                st.plotly_chart(fig_life, use_container_width=True)
+        else:
+            st.warning("⚠️ ไม่พบข้อมูล 'Relationship' ใน Google Sheets")
+
     else:
-        st.warning("⚠️ ไม่พบข้อมูล 'Relationship' ใน Google Sheets กรุณาตรวจสอบหัวตารางครับ")
-else:
-    st.info("กรอกข้อมูลการใช้จ่ายก่อน เพื่อดู Insight ความสัมพันธ์ครับ")
+        st.info("กรอกข้อมูลการใช้จ่ายก่อน เพื่อดู Insight ความสัมพันธ์ครับ")
 
-
-# --- PAGE 2: WEALTH PORTFOLIO ---
+# --- หลังจากจบเงื่อนไขหน้า Cash Flow (ไม่มี Else คั่นกลางแล้ว) หน้าถัดไปถึงจะใช้ ELIF ได้ ---
 elif menu == "📈 Wealth Portfolio":
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
+    # ... โค้ดส่วนที่เหลือของคุณ ...
     
     if not df_portfolio.empty:
         # 1. Calculation
