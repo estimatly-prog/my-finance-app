@@ -285,7 +285,7 @@ if menu == "💸 Cash Flow":
         )
                 # --- LIFESTYLE & CONNECTION INSIGHT (ย้ายมาอยู่ในนี้เพื่อให้ Syntax ถูกต้อง) ---
         st.write("---")
-        st.markdown("### 🫂 Lifestyle & Connection Insight")
+        st.markdown("###  Lifestyle & Connection Insight")
         
         analysis_df = df_raw.copy()
         if 'Actual_Paid' not in analysis_df.columns:
