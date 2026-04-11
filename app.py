@@ -341,29 +341,30 @@ elif menu == "📈 Wealth Portfolio":
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
                 
-# --- PAGE: REWARD TRACKING (Point Intelligence Engine) ---
+# --- PAGE: REWARD TRACKING (Point Intelligence Engine & Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
-    st.markdown('<h1 class="app-title">REWARDS.</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="app-title">MY WALLET.</h1>', unsafe_allow_html=True)
     
     if not df_master.empty and not df_raw.empty:
-        # 1. Calculation Logic (Internal Engine)
+        # 1. Calculation Logic (ประมวลผลแต้ม)
         points_summary = []
         
         for _, card in df_master.iterrows():
             card_name = card['Card_Name']
-            base_ratio = card['Point_Ratio']
+            base_ratio = card['Point_Ratio'] if card['Point_Ratio'] > 0 else 25
             starting_pts = card['Starting_Points']
+            img_url = card.get('Card_Image', 'https://via.placeholder.com/300x190?text=No+Image')
             
             # กรองยอดรูดจาก Expenses (ใช้ Total_Bill)
             card_tx = df_raw[df_raw['Payment_Method'] == card_name].copy()
             
             new_points = 0
             for _, tx in card_tx.iterrows():
-                amt = tx['Total_Bill']
-                cat = tx['Category']
-                note = str(tx['Note']).lower()
+                amt = tx.get('Total_Bill', 0)
+                cat = tx.get('Category', 'Others')
+                note = str(tx.get('Note', '')).lower()
                 
-                # Logic หาตัวคูณ: 1. Note Keyword (x5) -> 2. Category Rule -> 3. ALL Rule -> 4. Base (x1)
+                # Logic หาตัวคูณ
                 multiplier = 1
                 import re
                 match = re.search(r'x(\d+)', note)
@@ -383,13 +384,30 @@ elif menu == "💳 Reward Tracking":
                 new_points += (amt / base_ratio) * multiplier
             
             total_pts = starting_pts + new_points
-            points_summary.append({"Card": card_name, "Total Points": total_pts, "New Points": new_points})
+            points_summary.append({
+                "Card": card_name, 
+                "Total": total_pts, 
+                "New": new_points,
+                "Image": img_url
+            })
 
-        # 2. Display Metrics (แบบตัวใหญ่สะใจ)
-        st.markdown("#### 💎 Live Points Balance")
-        p_cols = st.columns(len(points_summary))
-        for idx, p in enumerate(points_summary):
-            p_cols[idx].metric(p['Card'], f"{p['Total Points']:,.0f}", delta=f"+{p['New Points']:,.0f}")
+        # 2. Display Digital Wallet (Grid แสดงหน้าบัตรสวยๆ)
+        st.markdown("#### 💎 Card Inventory")
+        # แบ่งแถวละ 2 คอลัมน์เพื่อให้เห็นรูปบัตรชัดเจน
+        for i in range(0, len(points_summary), 2):
+            cols = st.columns(2)
+            for idx, p in enumerate(points_summary[i:i+2]):
+                with cols[idx]:
+                    st.markdown(f"""
+                        <div style="background-color: #1E1E1E; border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                            <img src="{p['Image']}" style="width: 100%; border-radius: 12px; margin-bottom: 12px; aspect-ratio: 1.58/1; object-fit: cover;">
+                            <div style="padding: 0 5px;">
+                                <p style="color: #888; margin: 0; font-size: 0.8rem; letter-spacing: 1px;">CURRENT BALANCE</p>
+                                <h2 style="color: white; margin: 5px 0; font-size: 1.6rem; font-weight: 700;">{p['Total']:,.0f} <span style="font-size: 0.8rem; color: #00D1FF; font-weight: 400;">PTS</span></h2>
+                                <p style="color: #00D1FF; margin: 0; font-size: 0.8rem; font-weight: 500;">▲ +{p['New']:,.0f} from activities</p>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
         # 3. Relationship Insight (ใครช่วยเราปั่นแต้ม?)
         st.write("---")
@@ -397,25 +415,24 @@ elif menu == "💳 Reward Tracking":
         c1, c2 = st.columns(2)
         
         with c1:
-            # ยอดรูดแยกตามความสัมพันธ์
-            rel_sum = df_raw.groupby('Relationship')['Total_Bill'].sum().reset_index()
-            fig_rel = px.pie(rel_sum, values='Total_Bill', names='Relationship', hole=0.5, 
-                             title="Who generates your points?", template="plotly_dark")
-            st.plotly_chart(fig_rel, use_container_width=True)
+            if 'Relationship' in df_raw.columns:
+                rel_sum = df_raw.groupby('Relationship')['Total_Bill'].sum().reset_index()
+                fig_rel = px.pie(rel_sum, values='Total_Bill', names='Relationship', hole=0.6, 
+                                 title="Who generates your points?", template="plotly_dark")
+                fig_rel.update_layout(margin=dict(l=0, r=0, t=30, b=0))
+                st.plotly_chart(fig_rel, use_container_width=True)
             
         with c2:
-            # ตารางสรุปยอดหาร (ใครยังติดเงินเราบ้าง หรือช่วยรูดไปเท่าไหร่)
             st.markdown("##### Refund Status Tracker")
-            refund_df = df_raw[df_raw['Refund_Amount'] > 0].groupby('Relationship')[['Total_Bill', 'Refund_Amount']].sum().reset_index()
-            st.dataframe(refund_df, use_container_width=True, hide_index=True)
+            if 'Refund_Amount' in df_raw.columns:
+                refund_df = df_raw[df_raw['Refund_Amount'] > 0].groupby('Relationship')[['Total_Bill', 'Refund_Amount']].sum().reset_index()
+                st.dataframe(refund_df, use_container_width=True, hide_index=True)
             
     else:
         st.info("กรุณากรอกข้อมูลในหน้า Expenses และตั้งค่าหน้า Cards_Master ให้เรียบร้อยครับ")
-# --- PAGE 3: GOALS & BUDGET ---
+
+# --- PAGE: GOALS & BUDGET ---
 elif menu == "🎯 Goals & Budget":
     st.markdown('<h1 class="app-title">TARGETS.</h1>', unsafe_allow_html=True)
-    # ใส่โค้ดส่วน Savings Goal และ Budget เดิมของคุณที่นี่ครับ
+    # ใส่โค้ดส่วน Savings Goal และ Budget ของคุณต่อได้เลยครับ
     st.info("Section นี้ใช้ดู Budget และเป้าหมายการออมครับ")
-
-st.write("---")
-st.caption("Strategic Intelligence & Minimalist Design by Your AI Consultant")
