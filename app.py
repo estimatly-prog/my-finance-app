@@ -283,6 +283,8 @@ if menu == "💸 Cash Flow":
             use_container_width=True, 
             hide_index=True
         )
+    else: # <--- [จุดที่ 1] ต้องเพิ่ม Else ตัวนี้ และย่อหน้าให้ตรงกับ "if not df_raw.empty:"
+        st.info("กรอกข้อมูลรายจ่ายก่อนเพื่อดูการวิเคราะห์ครับ")
         
 elif menu == "📈 Wealth Portfolio":
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
