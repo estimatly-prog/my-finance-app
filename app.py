@@ -191,56 +191,69 @@ if menu == "💸 Cash Flow":
         m4.metric("Avg Speed", f"{actual_daily_avg:,.0f} / {DAILY_BUDGET_TARGET}", delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
         
         st.write("---")
-    # 2. ➕ QUICK ENTRY (ย้ายลงมาและย่อไว้เพื่อให้ Insight นำหน้า)
+# 2. ➕ STRATEGIC ENTRY (อัปเกรดระบบปั่นแต้มและระบบหารจ่าย)
     with st.expander("📝 New Transaction"):
         with st.form("entry_form", clear_on_submit=True):
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
                 date = st.date_input("Date", datetime.now())
-                category = st.selectbox("Category", ["Food", "Beverage", "Dessert", "7-11", "Gas", "E-commerce (Lazada, Shopee)", "Food/Transport (Grab)", "LINE Man", "Internet Bill", "Transport", "Shopping (Department Store)", "Foreign Currencies", "Investment", "Bills", "Movie", "Video Game (stream,origin)", "Music", "Others"])
+                # เพิ่ม Category ให้ครบตามที่คุณต้องการ
+                category = st.selectbox("Category", [
+                    "Food", "Beverage", "Dessert", "7-11", "Gas", 
+                    "E-commerce (Lazada, Shopee)", "Food/Transport (Grab)", 
+                    "LINE Man", "Internet Bill", "Transport", 
+                    "Shopping (Department Store)", "Foreign Currencies", 
+                    "Investment", "Bills", "Movie", "Video Game (stream,origin)", 
+                    "Music", "Others"
+                ])
+                # --- เพิ่มช่องระบุความสัมพันธ์ ---
+                relationship = st.selectbox("With Whom?", ["Self", "Partner (Gift)", "Family", "Friends", "Colleague"])
+                
             with col_f2:
-                amount_str = st.text_input("Amount (THB)", value="", placeholder="e.g. 1,200")
+                # แยกยอดเต็ม กับ ยอดเพื่อนคืน
+                total_bill_str = st.text_input("Total Bill (ยอดรูดเต็มหน้าสลิป)", placeholder="e.g. 500")
+                refund_str = st.text_input("Refund / Split (ยอดเพื่อนคืน)", value="0")
                 payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Cash"])
+                
             with col_f3:
-                note = st.text_input("Note (Optional)")
+                note = st.text_input("Note (Optional)", placeholder="เช่น x5, มื้อพิเศษ")
                 submitted = st.form_submit_button("Save Transaction")
             
             if submitted:
                 try:
-                    # แปลงค่าจาก Text เป็นตัวเลข
-                    amount = float(amount_str.replace(',', '')) if amount_str else 0.0
+                    # Logic การคำนวณเบื้องหลัง
+                    t_bill = float(total_bill_str.replace(',', '')) if total_bill_str else 0.0
+                    refund = float(refund_str.replace(',', '')) if refund_str else 0.0
+                    # ยอดที่เราจ่ายจริง (นี่คือยอดที่ระบบจะนำไปคิด Cash Flow)
+                    actual_paid = t_bill - refund 
                     
-                    if amount > 0:
-                        # --- 1. แสดงสถานะระหว่างบันทึก (UX Improvement) ---
-                        with st.status("🚀 Processing Transaction...", expanded=False) as status:
+                    if t_bill > 0:
+                        with st.status("🚀 Processing Strategic Entry...", expanded=False) as status:
                             conn = st.connection("gsheets", type=GSheetsConnection)
                             existing_data = conn.read(worksheet="Expenses", ttl=0)
                             
                             new_entry = pd.DataFrame([{
                                 "Date": date.strftime("%Y-%m-%d"), 
                                 "Category": category, 
-                                "Amount": amount, 
+                                "Total_Bill": t_bill,       # บันทึกยอดเต็มเพื่อคิดแต้ม
+                                "Refund_Amount": refund,     # บันทึกยอดที่ได้คืน
+                                "Amount": actual_paid,       # ยอดรายจ่ายจริง
                                 "Note": note, 
-                                "Payment_Method": payment
+                                "Payment_Method": payment,
+                                "Relationship": relationship # บันทึกความสัมพันธ์
                             }])
                             
                             updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
                             conn.update(worksheet="Expenses", data=updated_df)
-                            
-                            # อัปเดตสถานะเมื่อเสร็จ
-                            status.update(label="✅ Data Saved to Google Sheets!", state="complete", expanded=False)
+                            status.update(label="✅ Data Synced Successfully!", state="complete", expanded=False)
                         
-                        # --- 2. แจ้งเตือน Pop-up มุมขวา ---
-                        st.toast(f"บันทึก {category}: {amount:,.2f} ฿ เรียบร้อย!", icon='✅')
-                        
-                        # --- 3. หน่วงเวลาเล็กน้อยให้ User เห็นข้อความความสำเร็จ ---
+                        # แจ้งเตือนให้เห็นภาพรวม
+                        st.toast(f"บันทึกแล้ว! จ่ายจริง {actual_paid:,.2f} ฿ (สะสมแต้มจากยอด {t_bill:,.0f} ฿)", icon='💳')
                         time.sleep(1.2)
-                        
-                        # --- 4. สั่งรีเฟรชหน้าจอเพื่อให้ Metrics คำนวณใหม่ทันที ---
                         st.rerun()
                         
                     else:
-                        st.warning("⚠️ กรุณาใส่จำนวนเงินที่มากกว่า 0")
+                        st.warning("⚠️ กรุณาใส่ยอดเงินในช่อง Total Bill")
                 except Exception as e:
                     st.error(f"❌ เกิดข้อผิดพลาด: {e}")
     # 3. 📊 VISUAL ANALYTICS & HISTORY
