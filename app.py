@@ -258,7 +258,7 @@ if menu == "💸 Cash Flow":
                         st.warning("⚠️ กรุณาใส่ยอดเงินในช่อง Total Bill")
                 except Exception as e:
                     st.error(f"❌ เกิดข้อผิดพลาด: {e}")
-# 3. 📊 VISUAL ANALYTICS & HISTORY
+    # 3. 📊 VISUAL ANALYTICS & HISTORY
     if not df_raw.empty:
         c1, c2 = st.columns(2)
         with c1:
@@ -283,9 +283,7 @@ if menu == "💸 Cash Flow":
             use_container_width=True, 
             hide_index=True
         )
-
-
-# --- หลังจากจบเงื่อนไขหน้า Cash Flow (ไม่มี Else คั่นกลางแล้ว) หน้าถัดไปถึงจะใช้ ELIF ได้ ---
+        
 elif menu == "📈 Wealth Portfolio":
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
     # ... โค้ดส่วนที่เหลือของคุณ ...
