@@ -383,27 +383,25 @@ elif menu == "💳 Reward Tracking":
                 "New": new_points, "Image": img_url
             })
 
-    # 2. Display Section (ปรับเป็น 3 คอลัมน์แบบ Gallery)
+# 2. Display Section
         st.markdown("#### 💎 Card Inventory")
-        cards_per_row = 3
+        cards_per_row = 2
         for i in range(0, len(points_summary), cards_per_row):
             cols = st.columns(cards_per_row)
             for idx, p in enumerate(points_summary[i:i+cards_per_row]):
                 with cols[idx]:
-                    # จัด Layout ใหม่: รูปบน ตัวเลขล่าง เพื่อให้เหมาะกับ 3 คอลัมน์
+                    # ใช้ f-string ประกอบร่าง HTML แบบระมัดระวัง Tag
                     html_code = f"""
-                    <div style="background-color: #121212; border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid #222; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-                        <img src="{p['Image']}" style="width: 100%; border-radius: 6px; aspect-ratio: 1.58/1; object-fit: cover; margin-bottom: 8px;">
-                        
-                        <div style="overflow: hidden;">
-                            <p style="color: #888; margin: 0; font-size: 0.65rem; font-weight: 500; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{p['Card']}</p>
-                            
-                            <h3 style="color: white; margin: 2px 0; font-size: 1.2rem; font-weight: 700;">
-                                {p['Total']:,.0f} 
+                    <div style="background-color: #121212; border-radius: 12px; padding: 12px; margin-bottom: 15px; border: 1px solid #222; display: flex; align-items: center; min-height: 90px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                        <div style="width: 40%; margin-right: 12px;">
+                            <img src="{p['Image']}" style="width: 100%; border-radius: 6px; aspect-ratio: 1.58/1; object-fit: cover;">
+                        </div>
+                        <div style="width: 60%; overflow: hidden;">
+                            <p style="color: #888; margin: 0; font-size: 0.7rem; font-weight: 500; text-transform: uppercase;">{p['Card']}</p>
+                            <h3 style="color: white; margin: 2px 0; font-size: 1.4rem; font-weight: 700;">
+                                {p['Total']:,.0f} <span style="font-size: 0.7rem; color: #00D1FF;">PTS</span>
                             </h3>
-                            <p style="color: #00D1FF; margin: 0; font-size: 0.65rem; font-weight: 600;">
-                                <span style="color: #444;">PTS</span> ▲ {p['New']:,.0f}
-                            </p>
+                            <p style="color: #00D1FF; margin: 0; font-size: 0.7rem;">▲ +{p['New']:,.0f}</p>
                         </div>
                     </div>
                     """
