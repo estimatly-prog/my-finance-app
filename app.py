@@ -116,12 +116,15 @@ if menu == "💸 Cash Flow":
         today = datetime.now().date()
         df_filtered['Date_Only'] = df_filtered['Date'].dt.date
         
-        total_month = df_filtered['Amount'].sum()
-        total_today = df_filtered[df_filtered['Date_Only'] == today]['Amount'].sum()
+        # กรองเฉพาะรายการที่เป็น "ของกินรายวัน" สำหรับคำนวณ Pace
+        daily_items = df_filtered[df_filtered['Category'].isin(['Food', 'Beverage', 'Dessert', '7-11'])]
+        total_daily_food = daily_items['Amount'].sum()
         
         # หาจำนวนวันที่ผ่านมาแล้ว
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
-        actual_daily_avg = total_month / num_days_passed
+        
+        # ความเร็วการกินจริง (Pace) เทียบกับงบ 300.-
+        actual_food_pace = total_daily_food / num_days_passed
 
         # คำนวณ Survival Buffer (ดึงจากหน้า Wealth มาหาร)
         if not df_portfolio.empty:
@@ -332,6 +335,29 @@ if menu == "💸 Cash Flow":
                 status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
                 st.subheader(status_color)
                 st.progress(min(max(total_month / (DAILY_BUDGET_TARGET * days_in_month), 0.0), 1.0))
+
+        # --- STRATEGIC BUCKET MONITORING ---
+        st.write("---")
+        st.markdown("### 📦 Strategic Budget Inventory")
+        
+        col_s1, col_s2 = st.columns(2)
+        
+        with col_s1:
+            # คำนวณยอด Supermarket (3,000)
+            spent_super = df_filtered[df_filtered['Category'].isin(['Supermarket', 'Groceries'])]['Amount'].sum()
+            rem_super = BUDGET_PLAN["MONTHLY_SUPER"] - spent_super
+            st.metric("Supermarket Inventory", f"{rem_super:,.0f} ฿ Left", delta=f"Spent: {spent_super:,.0f}")
+            st.progress(min(max(spent_super / BUDGET_PLAN["MONTHLY_SUPER"], 0.0), 1.0))
+            st.caption(f"Monthly limit: {BUDGET_PLAN['MONTHLY_SUPER']:,} ฿")
+
+        with col_s2:
+            # คำนวณ Fixed Bills (630)
+            spent_fixed = df_filtered[df_filtered['Category'].isin(['Internet Bill', 'Music'])]['Amount'].sum()
+            rem_fixed = BUDGET_PLAN["FIXED_BILLS"] - spent_fixed
+            st.metric("Fixed Bills Remaining", f"{rem_fixed:,.0f} ฿", delta=f"Paid: {spent_fixed:,.0f}")
+            st.progress(min(max(spent_fixed / BUDGET_PLAN["FIXED_BILLS"], 0.0), 1.0))
+            st.caption(f"Monthly target: {BUDGET_PLAN['FIXED_BILLS']:,} ฿")
+            
         # --- LIFESTYLE & CONNECTION INSIGHT (Dynamic Version) ---
         st.write("---")
         st.markdown("### Lifestyle & Connection Insight")
