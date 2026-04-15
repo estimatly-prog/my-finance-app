@@ -142,36 +142,7 @@ if menu == "💸 Cash Flow":
         
         # คำนวณเส้นงบประมาณสะสม (Dynamic ตาม DAILY_BUDGET_TARGET)
         chart_data['Cumulative_Budget'] = (chart_data.index + 1) * DAILY_BUDGET_TARGET
-
-        # --- CASH FLOW FORECASTING SECTION ---
-        st.write("---")
-        st.markdown("### 🔮 Cash Flow Forecasting")
         
-        if not df_filtered.empty:
-            days_in_month = calendar.monthrange(datetime.now().year, datetime.now().month)[1]
-            days_passed = datetime.now().day
-            days_remaining = days_in_month - days_passed
-            
-            # 1. Prediction Logic
-            projected_spend = actual_daily_avg * days_in_month
-            budget_gap = (DAILY_BUDGET_TARGET * days_in_month) - projected_spend
-            
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                st.metric("Projected Month End", f"{projected_spend:,.0f} ฿", 
-                          delta=f"{budget_gap:,.0f} ฿ vs Budget", delta_color="normal")
-                st.caption("Estimated total spending based on current pace.")
-        
-            with c2:
-                safe_to_spend = (target_so_far + (days_remaining * DAILY_BUDGET_TARGET) - total_month) / days_remaining if days_remaining > 0 else 0
-                st.metric("Safe-to-Spend Today", f"{safe_to_spend:,.0f} ฿")
-                st.caption("Maximum daily spend to stay within monthly target.")
-                
-            with c3:
-                status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
-                st.subheader(status_color)
-                st.progress(min(max(total_month / (DAILY_BUDGET_TARGET * days_in_month), 0.0), 1.0))
-                
         # 2. สร้างกราฟด้วย Plotly แบบมินิมอล
         import plotly.graph_objects as go
         
@@ -313,6 +284,35 @@ if menu == "💸 Cash Flow":
             use_container_width=True, 
             hide_index=True
         )
+
+        # --- CASH FLOW FORECASTING SECTION ---
+        st.write("---")
+        st.markdown("### 🔮 Cash Flow Forecasting")
+        
+        if not df_filtered.empty:
+            days_in_month = calendar.monthrange(datetime.now().year, datetime.now().month)[1]
+            days_passed = datetime.now().day
+            days_remaining = days_in_month - days_passed
+            
+            # 1. Prediction Logic
+            projected_spend = actual_daily_avg * days_in_month
+            budget_gap = (DAILY_BUDGET_TARGET * days_in_month) - projected_spend
+            
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("Projected Month End", f"{projected_spend:,.0f} ฿", 
+                          delta=f"{budget_gap:,.0f} ฿ vs Budget", delta_color="normal")
+                st.caption("Estimated total spending based on current pace.")
+        
+            with c2:
+                safe_to_spend = (target_so_far + (days_remaining * DAILY_BUDGET_TARGET) - total_month) / days_remaining if days_remaining > 0 else 0
+                st.metric("Safe-to-Spend Today", f"{safe_to_spend:,.0f} ฿")
+                st.caption("Maximum daily spend to stay within monthly target.")
+                
+            with c3:
+                status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
+                st.subheader(status_color)
+                st.progress(min(max(total_month / (DAILY_BUDGET_TARGET * days_in_month), 0.0), 1.0))
         # --- LIFESTYLE & CONNECTION INSIGHT (Dynamic Version) ---
         st.write("---")
         st.markdown("### Lifestyle & Connection Insight")
