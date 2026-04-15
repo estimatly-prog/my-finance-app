@@ -137,7 +137,7 @@ if menu == "💸 Cash Flow":
             liquid_cash = 0
             
         # สร้างตัวแปร survival_buffer เตรียมไว้
-        survival_buffer = (liquid_cash / actual_food_pace) if actual_daily_avg > 0 else 0
+        survival_buffer = (liquid_cash / actual_food_pace) if actual_food_pace > 0 else 0
 
         # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
