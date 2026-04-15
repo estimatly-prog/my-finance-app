@@ -93,9 +93,9 @@ if menu == "💸 Cash Flow":
 
         # --- STRATEGIC BUDGET CONFIGURATION ---
         BUDGET_PLAN = {
-            "DAILY_LIMIT": 300,        # งบกินรายวัน (Food, Dessert)
-            "MONTHLY_SUPER": 3000,     # งบซุปเปอร์ต่อเดือน
-            "FIXED_BILLS": 630         # งบค่าเน็ต/บิลประจำ
+            "DAILY_LIMIT": daily_food_target,        # งบกินรายวัน (Food, Dessert)
+            "MONTHLY_SUPER": monthly_super_target,     # งบซุปเปอร์ต่อเดือน
+            "FIXED_BILLS": monthly_fixed_target        # งบค่าเน็ต/บิลประจำ
         }
 
         # 1. ตะกร้าของกินรายวัน (Daily Rhythm)
