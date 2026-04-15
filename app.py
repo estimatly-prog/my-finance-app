@@ -329,7 +329,7 @@ if menu == "💸 Cash Flow":
             
             # 1. Prediction Logic
             projected_spend = actual_daily_avg * days_in_month
-            budget_gap = (DAILY_BUDGET_TARGET * days_in_month) - projected_spend
+            budget_gap = (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month) - projected_spend
             
             c1, c2, c3 = st.columns(3)
             with c1:
