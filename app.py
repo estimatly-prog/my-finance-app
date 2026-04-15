@@ -124,7 +124,7 @@ if menu == "💸 Cash Flow":
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         
         # ความเร็วการกินจริง (Pace) เทียบกับงบ 300.-
-        actual_daily_avg = total_daily_food / num_days_passed
+        actual_food_pace = total_daily_food / num_days_passed
 
         # คำนวณ Survival Buffer (ดึงจากหน้า Wealth มาหาร)
         if not df_portfolio.empty:
@@ -137,7 +137,7 @@ if menu == "💸 Cash Flow":
             liquid_cash = 0
             
         # สร้างตัวแปร survival_buffer เตรียมไว้
-        survival_buffer = (liquid_cash / actual_daily_avg) if actual_daily_avg > 0 else 0
+        survival_buffer = (liquid_cash / actual_food_pace) if actual_daily_avg > 0 else 0
 
         # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
@@ -212,8 +212,9 @@ if menu == "💸 Cash Flow":
         m3.metric("Today's Spent", f"{total_today:,.0f} ฿", delta=f"{diff_today:,.0f} ฿ left", delta_color="normal")
         
         # Avg Speed: ความเร็วเฉลี่ยเทียบกับเป้าหมาย 350
-        diff_avg = DAILY_BUDGET_TARGET - actual_daily_avg
-        m4.metric("Avg Speed", f"{actual_daily_avg:,.0f} / {DAILY_BUDGET_TARGET}", delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
+        diff_avg = BUDGET_PLAN["DAILY_LIMIT"] - actual_food_pace
+        m4.metric("Avg Food Speed", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", 
+                  delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
         
         st.write("---")
 # 2. ➕ STRATEGIC ENTRY (อัปเกรดระบบปั่นแต้มและระบบหารจ่าย)
