@@ -89,13 +89,11 @@ if menu == "💸 Cash Flow":
         df_filtered = df_raw[df_raw['Date'].dt.strftime('%Y-%m') == selected_month]
 
         # --- [STEP 1] CONFIG: ความเร็วเป้าหมาย ---
-        DAILY_BUDGET_TARGET = daily_target 
-
-        # --- STRATEGIC BUDGET CONFIGURATION ---
+        # --- [STEP 1] CONFIG: เชื่อมโยงงบประมาณจาก Sidebar ---
         BUDGET_PLAN = {
-            "DAILY_LIMIT": daily_food_target,        # งบกินรายวัน (Food, Dessert)
-            "MONTHLY_SUPER": monthly_super_target,     # งบซุปเปอร์ต่อเดือน
-            "FIXED_BILLS": monthly_fixed_target        # งบค่าเน็ต/บิลประจำ
+            "DAILY_LIMIT": daily_food_target,    # ใช้ชื่อใหม่จาก Sidebar
+            "MONTHLY_SUPER": monthly_super_target, 
+            "FIXED_BILLS": monthly_fixed_target
         }
 
         # 1. ตะกร้าของกินรายวัน (Daily Rhythm)
@@ -140,7 +138,7 @@ if menu == "💸 Cash Flow":
         # ยอดรวมเฉพาะของกินดื่มในเดือนนี้
         total_food_month = daily_items['Amount'].sum()
 
-# --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
+        # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Daily Rhythm: Food & Treats")
         m1, m2, m3, m4 = st.columns(4)
 
