@@ -212,13 +212,18 @@ if menu == "💸 Cash Flow":
         # Survival Buffer: โชว์จำนวนวัน (ใช้ตัวแปรที่คำนวณไว้ข้างบน)
         m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
         
-        # Today's Velocity: วันนี้ใช้ไปเท่าไหร่ เหลือเท่าไหร่
-        diff_today = DAILY_BUDGET_TARGET - total_today
-        m3.metric("Today's Spent", f"{total_today:,.0f} ฿", delta=f"{diff_today:,.0f} ฿ left", delta_color="normal")
+        # --- [STEP 3.1] UPDATE METRICS TO STRATEGIC BUDGET ---
         
-        # Avg Speed: ความเร็วเฉลี่ยเทียบกับเป้าหมาย 350
+        # Today's Food Spent: วันนี้กินไปเท่าไหร่ (กรองจาก daily_items ที่เราทำไว้)
+        today_food_spent = daily_items[daily_items['Date_Only'] == today]['Amount'].sum()
+        diff_today = BUDGET_PLAN["DAILY_LIMIT"] - today_food_spent
+        m3.metric("Today's Food Spent", f"{today_food_spent:,.0f} ฿", 
+                  delta=f"{diff_today:,.0f} ฿ left", delta_color="normal")
+        
+        # Avg Food Pace: ความเร็วเฉลี่ยเฉพาะการกิน เทียบกับเป้า 300.-
+        # (ใช้ actual_food_pace ที่เราคำนวณไว้ก่อนหน้านี้)
         diff_avg = BUDGET_PLAN["DAILY_LIMIT"] - actual_food_pace
-        m4.metric("Avg Food Speed", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", 
+        m4.metric("Avg Food Pace", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", 
                   delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
         
         st.write("---")
