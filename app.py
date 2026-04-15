@@ -338,7 +338,7 @@ if menu == "💸 Cash Flow":
                 st.caption("Estimated total spending based on current pace.")
         
             with c2:
-                safe_to_spend = (target_so_far + (days_remaining * DAILY_BUDGET_TARGET) - total_month) / days_remaining if days_remaining > 0 else 0
+                safe_to_spend = (target_so_far + (days_remaining * BUDGET_PLAN["DAILY_LIMIT"]) - total_food_month) / days_remaining if days_remaining > 0 else 0
                 st.metric("Safe-to-Spend Today", f"{safe_to_spend:,.0f} ฿")
                 st.caption("Maximum daily spend to stay within monthly target.")
                 
