@@ -139,6 +139,9 @@ if menu == "💸 Cash Flow":
         # สร้างตัวแปร survival_buffer เตรียมไว้
         survival_buffer = (liquid_cash / actual_food_pace) if actual_food_pace > 0 else 0
 
+        # ยอดรวมเฉพาะของกินดื่มในเดือนนี้
+        total_food_month = daily_items['Amount'].sum()
+
         # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
         st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
         m1, m2, m3, m4 = st.columns(4)
@@ -200,9 +203,11 @@ if menu == "💸 Cash Flow":
         st.plotly_chart(fig_trend, use_container_width=True)
         
         # Total Spent: เทียบกับงบสะสม
-        target_so_far = DAILY_BUDGET_TARGET * num_days_passed
-        diff_total = target_so_far - total_month
-        m1.metric("Total Spent", f"{total_month:,.0f} ฿", delta=f"{diff_total:,.0f} ฿ from budget", delta_color="normal")
+        target_so_far = BUDGET_PLAN["DAILY_LIMIT"] * num_days_passed
+        diff_total = target_so_far - total_food_month
+        
+        m1.metric("Total Food Spent", f"{total_food_month:,.0f} ฿", 
+                  delta=f"{diff_total:,.0f} ฿ from budget", delta_color="normal")
         
         # Survival Buffer: โชว์จำนวนวัน (ใช้ตัวแปรที่คำนวณไว้ข้างบน)
         m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
