@@ -307,35 +307,48 @@ if menu == "💸 Cash Flow":
             hide_index=True
         )
 
-        # --- CASH FLOW FORECASTING SECTION ---
+# --- CASH FLOW FORECASTING SECTION (Hybrid Strategic) ---
         st.write("---")
         st.markdown("### 🔮 Cash Flow Forecasting")
         
         if not df_filtered.empty:
+            # เตรียมข้อมูลพื้นฐาน
             days_in_month = calendar.monthrange(datetime.now().year, datetime.now().month)[1]
-            days_passed = datetime.now().day
+            days_passed = num_days_passed
             days_remaining = days_in_month - days_passed
             
-            # 1. Prediction Logic
-            projected_spend = actual_food_pace * days_in_month
-            budget_gap = (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month) - projected_spend
+            # 1. พยากรณ์ "เฉพาะค่ากิน" (Food Pace)
+            projected_food = actual_food_pace * days_in_month
+            food_budget_gap = (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month) - projected_food
+            
+            # 2. ยอดใช้จ่าย "หมวดอื่นๆ" ที่จ่ายไปแล้วจริง (Supermarket, Bills, etc.)
+            other_spent = df_filtered[~df_filtered['Category'].isin(['Food', 'Beverage', 'Dessert', '7-11'])]['Amount'].sum()
+            
+            # 3. ยอดรวมพยากรณ์สิ้นเดือน (Total projected everything)
+            total_projected_all = projected_food + other_spent
             
             c1, c2, c3 = st.columns(3)
+            
             with c1:
-                st.metric("Projected Month End", f"{projected_spend:,.0f} ฿", 
-                          delta=f"{budget_gap:,.0f} ฿ vs Budget", delta_color="normal")
-                st.caption("Estimated total spending based on current pace.")
+                # ตัวนี้จะบอกว่า สิ้นเดือนนี้เงินจะออกจากกระเป๋ารวมกี่บาท
+                st.metric("Total Month-End Forecast", f"{total_projected_all:,.0f} ฿")
+                st.caption(f"Estimate of EVERY expenditure (Food pace + Fixed costs)")
         
             with c2:
+                # Safe-to-Spend: ยังคงคุมเฉพาะ "ค่ากิน" เพื่อไม่ให้วินัย President Kaphrao หลุด
                 safe_to_spend = (target_so_far + (days_remaining * BUDGET_PLAN["DAILY_LIMIT"]) - total_food_month) / days_remaining if days_remaining > 0 else 0
-                st.metric("Safe-to-Spend Today", f"{safe_to_spend:,.0f} ฿")
-                st.caption("Maximum daily spend to stay within monthly target.")
+                st.metric("Safe-to-Spend Today (Food)", f"{safe_to_spend:,.0f} ฿")
+                st.caption(f"Max food budget for today to stay under {BUDGET_PLAN['DAILY_LIMIT']} ฿ avg.")
                 
             with c3:
-                status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
+                # แสดงสถานะวินัยการกิน (Healthy หรือ Over-pacing)
+                status_color = "🟢 Healthy" if food_budget_gap > 0 else "🔴 Over-pacing"
                 st.subheader(status_color)
-                st.progress(min(max(total_food_month / (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month), 0.0), 1.0))
-
+                # แถบ Progress เฉพาะงบกิน
+                food_progress = min(max(total_food_month / (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month), 0.0), 1.0)
+                st.progress(food_progress)
+                st.caption(f"Food Budget Used: {food_progress*100:.1f}%")
+                
         # --- STRATEGIC BUCKET MONITORING ---
         st.write("---")
         st.markdown("### 📦 Strategic Budget Inventory")
