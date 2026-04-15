@@ -302,12 +302,12 @@ if menu == "💸 Cash Flow":
             with c1:
                 st.metric("Projected Month End", f"{projected_spend:,.0f} ฿", 
                           delta=f"{budget_gap:,.0f} ฿ vs Budget", delta_color="normal")
-                st.caption("คาดการณ์ยอดใช้จ่ายรวมเมื่อจบเดือนนี้")
+                st.caption("Estimated total spending based on current pace.")
         
             with c2:
                 safe_to_spend = (target_so_far + (days_remaining * DAILY_BUDGET_TARGET) - total_month) / days_remaining if days_remaining > 0 else 0
                 st.metric("Safe-to-Spend Today", f"{safe_to_spend:,.0f} ฿")
-                st.caption("ยอดที่ใช้ได้ต่อวันเพื่อให้ยังอยู่ในงบ")
+                st.caption("Maximum daily spend to stay within monthly target.")
                 
             with c3:
                 status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
