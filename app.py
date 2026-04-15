@@ -52,15 +52,13 @@ with st.sidebar:
     st.markdown("""<div class="brand-container"><span class="custom-icon">👻</span><h1 style="color:white; margin:0;">VELO.</h1></div>""", unsafe_allow_html=True)
     st.write("---")
     # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
-    st.subheader("⚙️ Settings")
-    daily_target = st.number_input(
-        "Daily Budget Target (฿)", 
-        min_value=100, 
-        max_value=2000, 
-        value=300, 
-        step=50,
-        help="กำหนดเพดานรายจ่ายต่อวันที่คุณต้องการควบคุม"
-    )
+    st.subheader("⚙️ Strategic Budgeting")
+    # งบกินรายวัน (ตัวเดิม)
+    daily_food_target = st.number_input("Daily Food & Treat (฿)", value=300, step=50)
+    # งบของเข้าบ้าน (รายเดือน)
+    monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
+    # งบบิลประจำ (รายเดือน)
+    monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
     menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "💳 Reward Tracking", "🎯 Goals & Budget"])
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
@@ -142,62 +140,72 @@ if menu == "💸 Cash Flow":
         # ยอดรวมเฉพาะของกินดื่มในเดือนนี้
         total_food_month = daily_items['Amount'].sum()
 
-        # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
-        st.markdown(f"#### 🚀 Financial Pulse: {selected_month}")
+# --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
+        st.markdown(f"#### 🚀 Daily Rhythm: Food & Treats")
         m1, m2, m3, m4 = st.columns(4)
 
-        st.write("---")
-        st.markdown("##### 📈 Spending Trend vs Budget")
+        # คำนวณความแม่นยำของงบกินดื่ม (ใช้อ้างอิง BUDGET_PLAN["DAILY_LIMIT"])
+        target_so_far = BUDGET_PLAN["DAILY_LIMIT"] * num_days_passed
+        diff_total = target_so_far - total_food_month
         
-        # 1. เตรียมข้อมูล Cumulative Data
-        # สร้าง DataFrame ของทุกวันในเดือนนี้
+        m1.metric("Total Food Spent", f"{total_food_month:,.0f} ฿", 
+                  delta=f"{diff_total:,.0f} ฿ from budget")
+        
+        m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
+
+        # ยอดกินของวันนี้
+        today_food_spent = daily_items[daily_items['Date_Only'] == today]['Amount'].sum()
+        diff_today = BUDGET_PLAN["DAILY_LIMIT"] - today_food_spent
+        m3.metric("Today's Food Spent", f"{today_food_spent:,.0f} ฿", 
+                  delta=f"{diff_today:,.0f} ฿ left")
+        
+        # ความเร็วการกินจริง (Pace)
+        diff_avg = BUDGET_PLAN["DAILY_LIMIT"] - actual_food_pace
+        m4.metric("Avg Food Pace", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", 
+                  delta=f"{diff_avg:,.0f} ฿ room")
+
+        st.write("---")
+        st.markdown("##### 📈 Spending pattern vs Food Budget")
+        
+        # 1. เตรียมข้อมูลกราฟแบบแยกหมวดหมู่ (Stacked Area)
+        # สร้างแนวแกน X (วันที่)
         last_day = df_filtered['Date'].dt.days_in_month.iloc[0]
         date_range = pd.date_range(start=df_filtered['Date'].min().replace(day=1), 
                                   periods=last_day, freq='D')
+        daily_df = pd.DataFrame({'Date': date_range, 'Date_Only': date_range.date})
+
+        # รวมยอดใช้จ่ายแยกตามวันและ Category
+        actual_daily_split = df_filtered.groupby(['Date_Only', 'Category'])['Amount'].sum().reset_index()
+
+        # สร้างกราฟ Area แยกสี
+        fig_trend = px.area(actual_daily_split, 
+                            x='Date_Only', 
+                            y='Amount', 
+                            color='Category',
+                            template="plotly_dark", 
+                            line_shape='spline',
+                            height=350,
+                            color_discrete_sequence=px.colors.qualitative.Pastel)
+
+        # 2. เพิ่มเส้น "งบกินสะสม" (Cumulative Food Budget Line)
+        # เพื่อดูว่ายอดรวมการกินของเรา (เฉพาะสี Food) มันควรจะอยู่ไม่เกินเส้นนี้
+        daily_df['Cumulative_Food_Target'] = (daily_df.index + 1) * BUDGET_PLAN["DAILY_LIMIT"]
         
-        daily_df = pd.DataFrame({'Date': date_range})
-        daily_df['Date_Only'] = daily_df['Date'].dt.date
-        
-        # รวมยอดใช้จ่ายรายวันจริง
-        actual_daily = df_filtered.groupby('Date_Only')['Amount'].sum().reset_index()
-        
-        # Merge และคำนวณยอดสะสม
-        chart_data = pd.merge(daily_df, actual_daily, on='Date_Only', how='left').fillna(0)
-        chart_data['Cumulative_Actual'] = chart_data['Amount'].cumsum()
-        
-        # คำนวณเส้นงบประมาณสะสม (Dynamic ตาม DAILY_BUDGET_TARGET)
-        chart_data['Cumulative_Budget'] = (chart_data.index + 1) * DAILY_BUDGET_TARGET
-        
-        # 2. สร้างกราฟด้วย Plotly แบบมินิมอล
-        import plotly.graph_objects as go
-        
-        fig_trend = go.Figure()
-        
-        # พื้นที่ยอดใช้จริง
         fig_trend.add_trace(go.Scatter(
-            x=chart_data['Date'], y=chart_data['Cumulative_Actual'],
-            fill='tozeroy', name='Actual Spend',
-            line=dict(color='#00D1FF', width=3),
-            fillcolor='rgba(0, 209, 255, 0.1)'
+            x=daily_df['Date'], 
+            y=daily_df['Cumulative_Food_Target'],
+            name='Food Budget Ceiling',
+            line=dict(color='#FF4B4B', width=2, dash='dot')
         ))
-        
-        # เส้นงบประมาณ
-        fig_trend.add_trace(go.Scatter(
-            x=chart_data['Date'], y=chart_data['Cumulative_Budget'],
-            name='Budget Limit',
-            line=dict(color='rgba(255, 255, 255, 0.3)', width=2, dash='dot')
-        ))
-        
+
         fig_trend.update_layout(
             hovermode="x unified",
-            template="plotly_dark",
-            height=300,
             margin=dict(l=0, r=0, t=20, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            yaxis=dict(showgrid=False),
-            xaxis=dict(showgrid=False)
+            yaxis=dict(showgrid=False, title="Spending (฿)"),
+            xaxis=dict(showgrid=False, title="")
         )
         
         st.plotly_chart(fig_trend, use_container_width=True)
