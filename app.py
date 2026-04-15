@@ -92,7 +92,26 @@ if menu == "💸 Cash Flow":
 
         # --- [STEP 1] CONFIG: ความเร็วเป้าหมาย ---
         DAILY_BUDGET_TARGET = daily_target 
+
+        # --- STRATEGIC BUDGET CONFIGURATION ---
+        BUDGET_PLAN = {
+            "DAILY_LIMIT": 300,        # งบกินรายวัน (Food, Dessert)
+            "MONTHLY_SUPER": 3000,     # งบซุปเปอร์ต่อเดือน
+            "FIXED_BILLS": 630         # งบค่าเน็ต/บิลประจำ
+        }
+
+        # 1. ตะกร้าของกินรายวัน (Daily Rhythm)
+        daily_mask = df_raw['Category'].isin(['Food', 'Beverage', 'Dessert', '7-11'])
+        df_daily = df_raw[daily_mask]
         
+        # 2. ตะกร้าซุปเปอร์มาร์เก็ต (Monthly Inventory)
+        super_mask = df_raw['Category'].isin(['Supermarket', 'Groceries'])
+        df_super = df_raw[super_mask]
+        
+        # 3. ตะกร้าบิลคงที่ (Fixed Bills)
+        fixed_mask = df_raw['Category'].isin(['Internet Bill', 'Music'])
+        df_fixed = df_raw[fixed_mask]
+
         # --- [STEP 2] CALCULATION LOGIC: ต้องคำนวณให้เสร็จก่อนแสดงผล ---
         today = datetime.now().date()
         df_filtered['Date_Only'] = df_filtered['Date'].dt.date
@@ -205,7 +224,7 @@ if menu == "💸 Cash Flow":
                     "Food", "Beverage", "Dessert", "7-11", "Gas", 
                     "E-commerce (Lazada, Shopee)", "Food/Transport (Grab)", 
                     "LINE Man", "Internet Bill", "Transport", 
-                    "Shopping (Department Store)", "Foreign Currencies", 
+                    "Shopping (Department Store)", "Supermarket", "Groceries", "Foreign Currencies", 
                     "Investment", "Bills", "Movie", "Video Game (stream,origin)", 
                     "Music", "Others"
                 ])
