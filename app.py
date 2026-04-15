@@ -165,17 +165,20 @@ if menu == "💸 Cash Flow":
         st.write("---")
         st.markdown("##### 📈 Spending pattern vs Food Budget")
         
-        # 1. เตรียมข้อมูลกราฟแบบแยกหมวดหมู่ (Stacked Area)
-        # สร้างแนวแกน X (วันที่)
+        # 1. เตรียมข้อมูลพื้นฐาน (สร้างแนวแกน X ตามวันในเดือน)
         last_day = df_filtered['Date'].dt.days_in_month.iloc[0]
         date_range = pd.date_range(start=df_filtered['Date'].min().replace(day=1), 
                                   periods=last_day, freq='D')
-        daily_df = pd.DataFrame({'Date': date_range, 'Date_Only': date_range.date})
+        
+        # สร้าง DataFrame กลางสำหรับทำแกนเวลา
+        daily_df_plot = pd.DataFrame({'Date': date_range, 'Date_Only': date_range.date})
 
-        # รวมยอดใช้จ่ายแยกตามวันและ Category
+        # 2. รวมยอดใช้จ่ายแยกตามวันและ Category
         actual_daily_split = df_filtered.groupby(['Date_Only', 'Category'])['Amount'].sum().reset_index()
 
-        # สร้างกราฟ Area แยกสี
+        # 3. สร้างกราฟ Area แยกสี (ภูเขาแต่ละหมวดหมู่)
+        import plotly.graph_objects as go
+        
         fig_trend = px.area(actual_daily_split, 
                             x='Date_Only', 
                             y='Amount', 
@@ -185,17 +188,18 @@ if menu == "💸 Cash Flow":
                             height=350,
                             color_discrete_sequence=px.colors.qualitative.Pastel)
 
-        # 2. เพิ่มเส้น "งบกินสะสม" (Cumulative Food Budget Line)
-        # เพื่อดูว่ายอดรวมการกินของเรา (เฉพาะสี Food) มันควรจะอยู่ไม่เกินเส้นนี้
-        daily_df['Cumulative_Food_Target'] = (daily_df.index + 1) * BUDGET_PLAN["DAILY_LIMIT"]
+        # 4. เพิ่มเส้น "งบกินสะสม" (Ceiling Line)
+        # คำนวณเส้นประสีแดง: (ลำดับวันที่ * งบกินรายวันจาก Sidebar)
+        daily_df_plot['Cumulative_Food_Target'] = (daily_df_plot.index + 1) * BUDGET_PLAN["DAILY_LIMIT"]
         
         fig_trend.add_trace(go.Scatter(
-            x=daily_df['Date'], 
-            y=daily_df['Cumulative_Food_Target'],
+            x=daily_df_plot['Date'], 
+            y=daily_df_plot['Cumulative_Food_Target'],
             name='Food Budget Ceiling',
             line=dict(color='#FF4B4B', width=2, dash='dot')
         ))
 
+        # 5. ปรับแต่ง Layout
         fig_trend.update_layout(
             hovermode="x unified",
             margin=dict(l=0, r=0, t=20, b=0),
