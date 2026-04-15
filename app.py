@@ -163,54 +163,53 @@ if menu == "💸 Cash Flow":
                   delta=f"{diff_avg:,.0f} ฿ room")
 
         st.write("---")
-        st.markdown("##### 📈 Spending pattern vs Food Budget")
+        st.markdown("##### 📈 Food & Treats Spending Trend")
         
-        # 1. เตรียมข้อมูลพื้นฐาน (สร้างแนวแกน X ตามวันในเดือน)
+        # 1. เตรียมข้อมูล Cumulative (เน้นเฉพาะ "สายกิน")
         last_day = df_filtered['Date'].dt.days_in_month.iloc[0]
         date_range = pd.date_range(start=df_filtered['Date'].min().replace(day=1), 
                                   periods=last_day, freq='D')
+        daily_df = pd.DataFrame({'Date': date_range, 'Date_Only': date_range.date})
         
-        # สร้าง DataFrame กลางสำหรับทำแกนเวลา
-        daily_df_plot = pd.DataFrame({'Date': date_range, 'Date_Only': date_range.date})
-
-        # 2. รวมยอดใช้จ่ายแยกตามวันและ Category
-        actual_daily_split = df_filtered.groupby(['Date_Only', 'Category'])['Amount'].sum().reset_index()
-
-        # 3. สร้างกราฟ Area แยกสี (ภูเขาแต่ละหมวดหมู่)
-        import plotly.graph_objects as go
+        # --- กรองเฉพาะรายการของกินดื่ม ---
+        food_daily = daily_items.groupby('Date_Only')['Amount'].sum().reset_index()
         
-        fig_trend = px.area(actual_daily_split, 
-                            x='Date_Only', 
-                            y='Amount', 
-                            color='Category',
-                            template="plotly_dark", 
-                            line_shape='spline',
-                            height=350,
-                            color_discrete_sequence=px.colors.qualitative.Pastel)
-
-        # 4. เพิ่มเส้น "งบกินสะสม" (Ceiling Line)
-        # คำนวณเส้นประสีแดง: (ลำดับวันที่ * งบกินรายวันจาก Sidebar)
-        daily_df_plot['Cumulative_Food_Target'] = (daily_df_plot.index + 1) * BUDGET_PLAN["DAILY_LIMIT"]
+        # Merge และทำยอดสะสมเฉพาะค่ากิน
+        chart_data = pd.merge(daily_df, food_daily, on='Date_Only', how='left').fillna(0)
+        chart_data['Cumulative_Food'] = chart_data['Amount'].cumsum()
         
+        # เส้นงบประมาณสะสม (300.- x วัน)
+        chart_data['Cumulative_Budget'] = (chart_data.index + 1) * BUDGET_PLAN["DAILY_LIMIT"]
+
+        # 2. สร้างกราฟ
+        fig_trend = go.Figure()
+
+        # เส้นยอดกินจริง (สีฟ้า)
         fig_trend.add_trace(go.Scatter(
-            x=daily_df_plot['Date'], 
-            y=daily_df_plot['Cumulative_Food_Target'],
-            name='Food Budget Ceiling',
+            x=chart_data['Date'], y=chart_data['Cumulative_Food'],
+            fill='tozeroy', name='Actual Food Spend',
+            line=dict(color='#00D1FF', width=3),
+            fillcolor='rgba(0, 209, 255, 0.1)'
+        ))
+
+        # เส้นงบกินเป้าหมาย (เส้นประสีแดง/ขาว)
+        fig_trend.add_trace(go.Scatter(
+            x=chart_data['Date'], y=chart_data['Cumulative_Budget'],
+            name='Daily Food Target',
             line=dict(color='#FF4B4B', width=2, dash='dot')
         ))
 
-        # 5. ปรับแต่ง Layout
         fig_trend.update_layout(
             hovermode="x unified",
+            template="plotly_dark",
+            height=300,
             margin=dict(l=0, r=0, t=20, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            yaxis=dict(showgrid=False, title="Spending (฿)"),
-            xaxis=dict(showgrid=False, title="")
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(showgrid=False), xaxis=dict(showgrid=False)
         )
         
-        st.plotly_chart(fig_trend, use_container_width=True)  
+        st.plotly_chart(fig_trend, use_container_width=True)
         st.write("---")
 # 2. ➕ STRATEGIC ENTRY (อัปเกรดระบบปั่นแต้มและระบบหารจ่าย)
     with st.expander("📝 New Transaction"):
