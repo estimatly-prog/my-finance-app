@@ -345,7 +345,7 @@ if menu == "💸 Cash Flow":
             with c3:
                 status_color = "🟢 Healthy" if budget_gap > 0 else "🔴 Over-pacing"
                 st.subheader(status_color)
-                st.progress(min(max(total_month / (DAILY_BUDGET_TARGET * days_in_month), 0.0), 1.0))
+                st.progress(min(max(total_food_month / (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month), 0.0), 1.0))
 
         # --- STRATEGIC BUCKET MONITORING ---
         st.write("---")
