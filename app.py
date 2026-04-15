@@ -5,6 +5,7 @@ from streamlit_gsheets import GSheetsConnection
 import plotly.express as px
 import calendar
 import time
+import plotly.graph_objects as go
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
