@@ -140,6 +140,10 @@ if menu == "💸 Cash Flow":
         total_food_month = daily_items['Amount'].sum()
 
         # --- [STEP 3] DISPLAY METRICS: แสดงผลหน้าปัด ---
+        # --- คำนวณยอดรวมทุกหมวดหมู่ในเดือนนี้ ---
+        absolute_total_month = df_filtered['Amount'].sum()
+        # แสดงยอดรวมสุทธิแบบเด่นๆ
+        st.markdown(f"### 💰 Total Monthly Spend: `{absolute_total_month:,.2f} ฿`") 
         st.markdown(f"#### 🚀 Daily Rhythm: Food & Treats")
         m1, m2, m3, m4 = st.columns(4)
 
