@@ -124,7 +124,7 @@ if menu == "💸 Cash Flow":
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         
         # ความเร็วการกินจริง (Pace) เทียบกับงบ 300.-
-        actual_food_pace = total_daily_food / num_days_passed
+        actual_daily_avg = total_daily_food / num_days_passed
 
         # คำนวณ Survival Buffer (ดึงจากหน้า Wealth มาหาร)
         if not df_portfolio.empty:
