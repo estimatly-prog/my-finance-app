@@ -210,32 +210,7 @@ if menu == "💸 Cash Flow":
             xaxis=dict(showgrid=False, title="")
         )
         
-        st.plotly_chart(fig_trend, use_container_width=True)
-        
-        # Total Spent: เทียบกับงบสะสม
-        target_so_far = BUDGET_PLAN["DAILY_LIMIT"] * num_days_passed
-        diff_total = target_so_far - total_food_month
-        
-        m1.metric("Total Food Spent", f"{total_food_month:,.0f} ฿", 
-                  delta=f"{diff_total:,.0f} ฿ from budget", delta_color="normal")
-        
-        # Survival Buffer: โชว์จำนวนวัน (ใช้ตัวแปรที่คำนวณไว้ข้างบน)
-        m2.metric("Survival Buffer", f"{survival_buffer:,.0f} Days")
-        
-        # --- [STEP 3.1] UPDATE METRICS TO STRATEGIC BUDGET ---
-        
-        # Today's Food Spent: วันนี้กินไปเท่าไหร่ (กรองจาก daily_items ที่เราทำไว้)
-        today_food_spent = daily_items[daily_items['Date_Only'] == today]['Amount'].sum()
-        diff_today = BUDGET_PLAN["DAILY_LIMIT"] - today_food_spent
-        m3.metric("Today's Food Spent", f"{today_food_spent:,.0f} ฿", 
-                  delta=f"{diff_today:,.0f} ฿ left", delta_color="normal")
-        
-        # Avg Food Pace: ความเร็วเฉลี่ยเฉพาะการกิน เทียบกับเป้า 300.-
-        # (ใช้ actual_food_pace ที่เราคำนวณไว้ก่อนหน้านี้)
-        diff_avg = BUDGET_PLAN["DAILY_LIMIT"] - actual_food_pace
-        m4.metric("Avg Food Pace", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", 
-                  delta=f"{diff_avg:,.0f} ฿ room", delta_color="normal")
-        
+        st.plotly_chart(fig_trend, use_container_width=True)  
         st.write("---")
 # 2. ➕ STRATEGIC ENTRY (อัปเกรดระบบปั่นแต้มและระบบหารจ่าย)
     with st.expander("📝 New Transaction"):
