@@ -238,7 +238,7 @@ if menu == "💸 Cash Flow":
                 # แยกยอดเต็ม กับ ยอดเพื่อนคืน
                 total_bill_str = st.text_input("Total Bill (ยอดรูดเต็มหน้าสลิป)", placeholder="e.g. 500")
                 refund_str = st.text_input("Refund / Split (ยอดเพื่อนคืน)", value="0")
-                payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Cash"])
+                payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Central The 1 REDZ", "Cash"])
                 
             with col_f3:
                 note = st.text_input("Note (Optional)", placeholder="เช่น x5, มื้อพิเศษ")
