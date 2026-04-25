@@ -226,7 +226,7 @@ if menu == "💸 Cash Flow":
                 category = st.selectbox("Category", [
                     "Food", "Beverage", "Dessert", "7-11", "Gas", 
                     "E-commerce (Lazada, Shopee)", "Food/Transport (Grab)", 
-                    "LINE Man", "Internet Bill", "Transport", 
+                    "LINE Man", "Internet Bill", "Transport", "Barber",
                     "Shopping (Department Store)", "Supermarket", "Groceries", "Foreign Currencies", 
                     "Investment", "Bills", "Movie", "Video Game (stream,origin)", 
                     "Music", "Others"
