@@ -371,43 +371,48 @@ if menu == "💸 Cash Flow":
             st.progress(min(max(spent_fixed / BUDGET_PLAN["FIXED_BILLS"], 0.0), 1.0))
             st.caption(f"Monthly target: {BUDGET_PLAN['FIXED_BILLS']:,} ฿")
             
-        # --- LIFESTYLE & CONNECTION INSIGHT (Dynamic Version) ---
+        # --- LIFESTYLE & CONNECTION INSIGHT (Fixed Version) ---
         st.write("---")
         st.markdown("### Lifestyle & Connection Insight")
         
-        analysis_df = df_raw.copy()
-        if 'Actual_Paid' not in analysis_df.columns:
-            analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
+        # แก้จุดที่ 1: ใช้ df_filtered แทน df_raw เพื่อให้ข้อมูลเปลี่ยนตามเดือนที่เลือก
+        analysis_df = df_filtered.copy() 
         
-        if 'Relationship' in analysis_df.columns:
-            # 1. สร้างตัวเลือกความสัมพันธ์ (ดึงรายชื่อจากคอลัมน์ Relationship มาเลย)
-            all_relations = analysis_df['Relationship'].unique().tolist()
+        # แก้จุดที่ 2: คำนวณ Actual_Paid จากคอลัมน์ใหม่ที่เราออกแบบไว้ (ถ้ายังไม่มีใน df)
+        if 'Total_Bill' in analysis_df.columns and 'Refund_Amount' in analysis_df.columns:
+            analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
+        else:
+            # fallback กรณีข้อมูลแถวเก่าๆ ไม่มีคอลัมน์ใหม่ ให้ใช้ Amount ปกติ
+            analysis_df['Actual_Paid'] = analysis_df['Amount']
+        
+        if 'Relationship' in analysis_df.columns and not analysis_df.empty:
+            # 1. สร้างตัวเลือกความสัมพันธ์ (ดึงเฉพาะที่มีในเดือนนั้นๆ)
+            all_relations = sorted(analysis_df['Relationship'].unique().tolist())
             selected_rel = st.selectbox("Select Relationship to Inspect:", all_relations)
             
-            # 2. คำนวณยอดตามคนที่เลือก
+            # 2. คำนวณยอดตามคนที่เลือก (ใช้ข้อมูลที่กรองเดือนแล้ว)
             lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
             specific_spend = lifestyle_df[lifestyle_df['Relationship'] == selected_rel]['Actual_Paid'].sum()
-            total_actual = analysis_df['Actual_Paid'].sum()
+            total_actual = lifestyle_df['Actual_Paid'].sum()
             
             lc1, lc2 = st.columns([1, 2])
             with lc1:
                 st.markdown(f"##### Details for: {selected_rel}")
                 st.metric(f"Total Spent with {selected_rel}", f"{specific_spend:,.0f} THB")
-                st.caption(f"Net personal spending with {selected_rel.lower()} (after refunds).")
+                st.caption(f"Net spending in {selected_month} (after refunds).")
                 
                 if total_actual > 0:
                     ratio = (specific_spend / total_actual) * 100
-                    st.write(f"**{ratio:.1f}%** of total monthly spend")
+                    st.write(f"**{ratio:.1f}%** of monthly spend")
             
             with lc2:
-                # กราฟนี้จะโชว์ภาพรวมทุกคนเพื่อให้เปรียบเทียบได้
                 fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
                                   hole=0.6, color_discrete_sequence=px.colors.sequential.Mint_r,
-                                  template="plotly_dark", title="Spending Distribution by Connection")
+                                  template="plotly_dark", title=f"Connection Mix: {selected_month}")
                 fig_life.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=True)
                 st.plotly_chart(fig_life, use_container_width=True)
         else:
-            st.warning("⚠️ Relationship data not found.")
+            st.info(f"📅 No relationship data found for {selected_month}")
 
 # --- PAGE 2: WEALTH PORTFOLIO ---
 elif menu == "📈 Wealth Portfolio":
