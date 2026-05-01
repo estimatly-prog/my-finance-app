@@ -60,7 +60,7 @@ with st.sidebar:
     monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
     # งบบิลประจำ (รายเดือน)
     monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
-    menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "💳 Reward Tracking", "🎯 Goals & Budget"])
+    menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "📅 Yearly Planning", "💳 Reward Tracking", "🎯 Goals & Budget"])
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
@@ -472,7 +472,48 @@ elif menu == "📈 Wealth Portfolio":
         to_del = st.selectbox("Select Asset to Remove", df_portfolio['Asset_Name'].unique())
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
-                
+
+# --- PAGE: YEARLY PLANNING ---
+elif menu == "📅 Yearly Planning":
+    st.markdown('<h1 class="app-title">YEARLY PLAN.</h1>', unsafe_allow_html=True)
+    
+    if not df_fixed_expenses.empty:
+        # --- LOGIC: คำนวณยอดเงิน ---
+        # 1. แปลง Amount ให้เป็นตัวเลข
+        df_fixed_expenses['Amount'] = pd.to_numeric(df_fixed_expenses['Amount'], errors='coerce').fillna(0)
+        
+        # 2. สร้างคอลัมน์ Yearly_Amount เพื่อ Normalize ทุกอย่างให้เป็นรายปี
+        def calculate_yearly(row):
+            freq = str(row['Frequency']).lower()
+            if freq == 'daily': return row['Amount'] * 365
+            elif freq == 'monthly': return row['Amount'] * 12
+            elif freq == 'yearly': return row['Amount']
+            return 0
+
+        df_fixed_expenses['Yearly_Amount'] = df_fixed_expenses.apply(calculate_yearly, axis=1)
+        
+        # 3. คำนวณยอดรวม (KPIs)
+        total_yearly = df_fixed_expenses['Yearly_Amount'].sum()
+        total_monthly_eff = total_yearly / 12
+        
+        # --- DISPLAY: KPI Cards ---
+        k1, k2, k3 = st.columns(3)
+        k1.metric("Total Yearly Outflow", f"฿{total_yearly:,.2f}")
+        k2.metric("Monthly Effective Burden", f"฿{total_monthly_eff:,.2f}")
+        k3.metric("Fixed Items Count", f"{len(df_fixed_expenses)} Items")
+        
+        st.write("---")
+        
+        # --- DISPLAY: ตารางรายการ ---
+        st.markdown("#### 📋 Fixed Expense Inventory")
+        st.dataframe(
+            df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Category', 'Note']],
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("ไม่พบข้อมูลใน Sheet Fixed_Expenses กรุณาตรวจสอบ GID")
+
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
     st.markdown('<h1 class="app-title">MY WALLET.</h1>', unsafe_allow_html=True)
