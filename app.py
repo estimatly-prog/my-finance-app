@@ -473,16 +473,14 @@ elif menu == "📈 Wealth Portfolio":
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
 
-# --- PAGE: YEARLY PLANNING ---
+# --- PAGE: YEARLY PLANNING [FULL MODULE] ---
 elif menu == "📅 Yearly Planning":
     st.markdown('<h1 class="app-title">YEARLY PLAN.</h1>', unsafe_allow_html=True)
     
     if not df_fixed_expenses.empty:
-        # --- LOGIC: คำนวณยอดเงิน ---
-        # 1. แปลง Amount ให้เป็นตัวเลข
-        df_fixed_expenses['Amount'] = pd.to_numeric(df_fixed_expenses['Amount'], errors='coerce').fillna(0)
+        # 1. DATA PREPARATION
+        df_fixed_expenses['Amount'] = pd.to_numeric(df_fixed_expenses['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         
-        # 2. สร้างคอลัมน์ Yearly_Amount เพื่อ Normalize ทุกอย่างให้เป็นรายปี
         def calculate_yearly(row):
             freq = str(row['Frequency']).lower()
             if freq == 'daily': return row['Amount'] * 365
@@ -491,28 +489,64 @@ elif menu == "📅 Yearly Planning":
             return 0
 
         df_fixed_expenses['Yearly_Amount'] = df_fixed_expenses.apply(calculate_yearly, axis=1)
-        
-        # 3. คำนวณยอดรวม (KPIs)
         total_yearly = df_fixed_expenses['Yearly_Amount'].sum()
         total_monthly_eff = total_yearly / 12
         
-        # --- DISPLAY: KPI Cards ---
+        # 2. KPI STRIP
         k1, k2, k3 = st.columns(3)
         k1.metric("Total Yearly Outflow", f"฿{total_yearly:,.2f}")
         k2.metric("Monthly Effective Burden", f"฿{total_monthly_eff:,.2f}")
-        k3.metric("Fixed Items Count", f"{len(df_fixed_expenses)} Items")
+        k3.metric("Fixed Items", f"{len(df_fixed_expenses)} Lists")
         
         st.write("---")
         
-        # --- DISPLAY: ตารางรายการ ---
+        # 3. MONTHLY PROJECTION CHART
+        months = [str(i) for i in range(1, 13)]
+        monthly_projection = {m: 0 for m in months}
+
+        for _, row in df_fixed_expenses.iterrows():
+            freq = str(row['Frequency']).lower()
+            cycle = str(row['Cycle_Month']).upper()
+            amt = row['Amount']
+
+            if freq == 'daily':
+                for m in months: monthly_projection[m] += (amt * 30.42)
+            elif freq == 'monthly' or cycle == 'ALL':
+                for m in months: monthly_projection[m] += amt
+            elif freq == 'yearly':
+                if cycle in monthly_projection:
+                    monthly_projection[cycle] += amt
+
+        proj_df = pd.DataFrame({
+            'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'Expected_Outflow': list(monthly_projection.values())
+        })
+
+        st.markdown("#### 🔮 Monthly Cash-Out Projection")
+        fig_proj = px.bar(proj_df, x='Month', y='Expected_Outflow', text_auto='.2s', template="plotly_dark")
+        fig_proj.update_traces(marker_color='#00D1FF', marker_line_color='#FFFFFF', marker_line_width=0.5, opacity=0.8)
+        fig_proj.add_hline(y=total_monthly_eff, line_dash="dot", line_color="#FF4B4B", annotation_text="Monthly Avg")
+        fig_proj.update_layout(height=350, margin=dict(l=0, r=0, t=20, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig_proj, use_container_width=True)
+
+        # 4. INVENTORY TABLE
+        st.write("---")
         st.markdown("#### 📋 Fixed Expense Inventory")
         st.dataframe(
             df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Category', 'Note']],
+            column_config={
+                "Amount": st.column_config.NumberColumn(format="฿%,.2f"),
+                "Note": st.column_config.TextColumn(width="large")
+            },
             use_container_width=True,
             hide_index=True
         )
+        
+        # 5. INSIGHT BOX
+        peak_month = proj_df.loc[proj_df['Expected_Outflow'].idxmax(), 'Month']
+        st.info(f"💡 **Strategic Note:** เดือน **{peak_month}** คือช่วงที่มีภาระจ่ายสูงสุด ควรเตรียมสภาพคล่องให้พร้อม")
     else:
-        st.info("ไม่พบข้อมูลใน Sheet Fixed_Expenses กรุณาตรวจสอบ GID")
+        st.warning("⚠️ ไม่พบข้อมูลใน Sheet Fixed_Expenses")
 
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
