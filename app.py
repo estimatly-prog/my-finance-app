@@ -589,28 +589,39 @@ elif menu == "📅 Yearly Planning":
         else:
             st.info("No major renewals scheduled for next month.")
             
-        # 4. STRATEGIC INVENTORY TABLE
+# 4. STRATEGIC INVENTORY (LIVE EDITOR)
         st.write("---")
-        st.markdown("#### 📋 Strategic Inventory")
-        st.dataframe(
+        st.markdown("#### 📋 Live Inventory Management")
+        st.caption("You can edit, add, or delete items directly in the table below. Click 'Sync to Cloud' to save changes.")
+
+        # ใช้ st.data_editor เพื่อให้ตารางแก้ไขได้แบบ Excel
+        edited_df = st.data_editor(
             df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Category', 'Note']],
             column_config={
-                "Amount": st.column_config.NumberColumn("Cost", format="฿%,.2f"),
-                "Frequency": st.column_config.TextColumn("Billing"),
-                "Cycle_Month": st.column_config.TextColumn("Cycle"),
-                "Category": st.column_config.TextColumn("Category"),
+                "Amount": st.column_config.NumberColumn("Cost (฿)", format="%.2f", min_value=0),
+                "Frequency": st.column_config.SelectboxColumn("Billing", options=["Daily", "Monthly", "Yearly"]),
+                "Cycle_Month": st.column_config.TextColumn("Cycle (1-12/ALL)"),
+                "Category": st.column_config.SelectboxColumn("Category", options=["Food", "Communication", "Services", "Entertainment", "Groceries", "Transport", "Other"]),
                 "Note": st.column_config.TextColumn("Context", width="large")
             },
+            num_rows="dynamic", # ยอมให้กดเพิ่ม/ลบแถวได้เอง
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
+            key="fixed_expense_editor"
         )
 
-        # 5. PEAK MONTH INSIGHT
-        peak_month = proj_df.loc[proj_df['Amount'].idxmax(), 'Month']
-        st.info(f"🚩 **Strategic Alert:** Maximum cash outflow is projected in **{peak_month}**. Ensure sufficient liquidity for this period.")
-
-    else:
-        st.warning("⚠️ Fixed Expenses data not loaded. Please check Google Sheets connection.")
+        # ปุ่มบันทึกข้อมูล
+        if st.button("🚀 Sync Changes to Cloud", use_container_width=True):
+            try:
+                with st.spinner("Updating Google Sheets..."):
+                    conn = st.connection("gsheets", type=GSheetsConnection)
+                    # อัปเดตข้อมูลทั้งหมดกลับไปยัง Worksheet ชื่อ Fixed_Expenses
+                    conn.update(worksheet="Fixed_Expenses", data=edited_df)
+                    st.success("Cloud Sync Successful!")
+                    time.sleep(1)
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Sync Failed: {e}")
         
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
