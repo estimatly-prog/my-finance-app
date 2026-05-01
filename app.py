@@ -601,7 +601,7 @@ elif menu == "📅 Yearly Planning":
                 "Amount": st.column_config.NumberColumn("Cost (฿)", format="%.2f", min_value=0),
                 "Frequency": st.column_config.SelectboxColumn("Billing", options=["Daily", "Monthly", "Yearly"]),
                 "Cycle_Month": st.column_config.TextColumn("Cycle (1-12/ALL)"),
-                "Category": st.column_config.SelectboxColumn("Category", options=["Food", "Communication", "Services", "Entertainment", "Groceries", "Transport", "Other"]),
+                "Category": st.column_config.SelectboxColumn("Category", options=["Food", "Mobile Internet", "Services", "Internet", "Sports Streaming", "Supermarket", "Gas", "Electricity Bill", "Water Bill", "Common area maintenance charges", "Youtube Premium", "Music Streaming", "Entertainment", "Groceries", "Transport", "Other"]),
                 "Note": st.column_config.TextColumn("Context", width="large")
             },
             num_rows="dynamic", # ยอมให้กดเพิ่ม/ลบแถวได้เอง
