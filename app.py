@@ -473,80 +473,110 @@ elif menu == "📈 Wealth Portfolio":
         if st.button("🗑️ Confirm Delete"):
             if delete_asset(to_del): st.rerun()
 
-# --- PAGE: YEARLY PLANNING [FULL MODULE] ---
+# --- PAGE: YEARLY PLANNING [PROFESSIONAL EDITION] ---
 elif menu == "📅 Yearly Planning":
-    st.markdown('<h1 class="app-title">YEARLY PLAN.</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="app-title">YEARLY STRATEGY.</h1>', unsafe_allow_html=True)
     
     if not df_fixed_expenses.empty:
-        # 1. DATA PREPARATION
+        # 1. DATA PREPARATION & NORMALIZATION
+        # ทำความสะอาดข้อมูลตัวเลข
         df_fixed_expenses['Amount'] = pd.to_numeric(df_fixed_expenses['Amount'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         
-        def calculate_yearly(row):
-            freq = str(row['Frequency']).lower()
-            if freq == 'daily': return row['Amount'] * 365
-            elif freq == 'monthly': return row['Amount'] * 12
-            elif freq == 'yearly': return row['Amount']
-            return 0
+        # คำนวณยอดรายปีตามความถี่
+        def get_annual_value(row):
+            f = str(row['Frequency']).lower()
+            val = row['Amount']
+            return val * 365 if f == 'daily' else val * 12 if f == 'monthly' else val
 
-        df_fixed_expenses['Yearly_Amount'] = df_fixed_expenses.apply(calculate_yearly, axis=1)
+        df_fixed_expenses['Yearly_Amount'] = df_fixed_expenses.apply(get_annual_value, axis=1)
         total_yearly = df_fixed_expenses['Yearly_Amount'].sum()
         total_monthly_eff = total_yearly / 12
         
-        # 2. KPI STRIP
+        # 2. STRATEGIC KPI CARDS
         k1, k2, k3 = st.columns(3)
-        k1.metric("Total Yearly Outflow", f"฿{total_yearly:,.2f}")
-        k2.metric("Monthly Effective Burden", f"฿{total_monthly_eff:,.2f}")
-        k3.metric("Fixed Items", f"{len(df_fixed_expenses)} Lists")
+        with k1:
+            st.metric("Total Yearly Commitment", f"฿{total_yearly:,.2f}")
+            st.caption("งบประมาณรวมที่ต้องจ่ายทั้งปี")
+        with k2:
+            st.metric("Monthly Provision", f"฿{total_monthly_eff:,.2f}")
+            st.caption("ยอดเงินเฉลี่ยที่ควรสำรองไว้ต่อเดือน")
+        with k3:
+            st.metric("Expense Intensity", f"{len(df_fixed_expenses)} Items")
+            st.caption("จำนวนรายการภาระคงที่")
         
         st.write("---")
         
-        # 3. MONTHLY PROJECTION CHART
-        months = [str(i) for i in range(1, 13)]
-        monthly_projection = {m: 0 for m in months}
+        # 3. MONTHLY CASH-OUT PROJECTION (WITH SMART GRADIENT)
+        months_idx = [str(i) for i in range(1, 13)]
+        projection = {m: 0 for m in months_idx}
 
         for _, row in df_fixed_expenses.iterrows():
-            freq = str(row['Frequency']).lower()
-            cycle = str(row['Cycle_Month']).upper()
-            amt = row['Amount']
-
-            if freq == 'daily':
-                for m in months: monthly_projection[m] += (amt * 30.42)
-            elif freq == 'monthly' or cycle == 'ALL':
-                for m in months: monthly_projection[m] += amt
-            elif freq == 'yearly':
-                if cycle in monthly_projection:
-                    monthly_projection[cycle] += amt
+            f, c, amt = str(row['Frequency']).lower(), str(row['Cycle_Month']).upper(), row['Amount']
+            if f == 'daily':
+                for m in months_idx: projection[m] += (amt * 30.42)
+            elif f == 'monthly' or c == 'ALL':
+                for m in months_idx: projection[m] += amt
+            elif f == 'yearly' and c in projection:
+                projection[c] += amt
 
         proj_df = pd.DataFrame({
             'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            'Expected_Outflow': list(monthly_projection.values())
+            'Amount': list(projection.values())
         })
 
         st.markdown("#### 🔮 Monthly Cash-Out Projection")
-        fig_proj = px.bar(proj_df, x='Month', y='Expected_Outflow', text_auto='.2s', template="plotly_dark")
-        fig_proj.update_traces(marker_color='#00D1FF', marker_line_color='#FFFFFF', marker_line_width=0.5, opacity=0.8)
-        fig_proj.add_hline(y=total_monthly_eff, line_dash="dot", line_color="#FF4B4B", annotation_text="Monthly Avg")
-        fig_proj.update_layout(height=350, margin=dict(l=0, r=0, t=20, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        
+        # สร้างกราฟพร้อม Color Gradient ไล่ตามความสูง
+        fig_proj = px.bar(
+            proj_df, x='Month', y='Amount', text_auto='.2s',
+            color='Amount', 
+            color_continuous_scale=['#1E293B', '#00D1FF'], # จากน้ำเงินเข้มขรึม ไปจนถึงสีฟ้าสว่าง
+            template="plotly_dark"
+        )
+        
+        # ปรับแต่ง UI กราฟให้ดูคลีนแบบ Dashboard ระดับสูง
+        fig_proj.update_layout(
+            height=380,
+            margin=dict(l=0, r=0, t=20, b=0),
+            coloraxis_showscale=False, # ซ่อนแถบสีข้างๆ
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False), # ซ่อนตัวเลขแกน Y เพื่อเน้น Text บนแท่ง
+            xaxis=dict(showgrid=False)
+        )
+        
+        # เพิ่มเส้นค่าเฉลี่ย (Standard Line)
+        fig_proj.add_hline(
+            y=total_monthly_eff, 
+            line_dash="dot", 
+            line_color="#FF4B4B", 
+            annotation_text="Provision Goal", 
+            annotation_position="top right"
+        )
+        
         st.plotly_chart(fig_proj, use_container_width=True)
 
-        # 4. INVENTORY TABLE
+        # 4. DATA INVENTORY (SEARCHABLE & SORTABLE)
         st.write("---")
-        st.markdown("#### 📋 Fixed Expense Inventory")
+        st.markdown("#### 📋 Strategic Inventory")
         st.dataframe(
-            df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Category', 'Note']],
+            df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Note']],
             column_config={
-                "Amount": st.column_config.NumberColumn(format="฿%,.2f"),
-                "Note": st.column_config.TextColumn(width="large")
+                "Amount": st.column_config.NumberColumn("Cost", format="฿%,.2f"),
+                "Frequency": st.column_config.TextColumn("Billing"),
+                "Cycle_Month": st.column_config.TextColumn("Cycle"),
+                "Note": st.column_config.TextColumn("Context", width="large")
             },
             use_container_width=True,
             hide_index=True
         )
-        
-        # 5. INSIGHT BOX
-        peak_month = proj_df.loc[proj_df['Expected_Outflow'].idxmax(), 'Month']
-        st.info(f"💡 **Strategic Note** : **{peak_month}** is the month with the highest expenses, so you should make sure your liquidity is well prepared.")
+
+        # 5. PEAK MONTH INSIGHT
+        peak_month = proj_df.loc[proj_df['Amount'].idxmax(), 'Month']
+        st.info(f"🚩 **Strategic Alert:** ภาระจ่ายสูงสุดจะเกิดขึ้นในเดือน **{peak_month}** โปรดบริหารจัดการสภาพคล่องล่วงหน้า")
+
     else:
-        st.warning("⚠️ ไม่พบข้อมูลใน Sheet Fixed_Expenses")
+        st.warning("⚠️ ข้อมูล Fixed Expenses ยังไม่ถูกโหลด กรุณาตรวจสอบการเชื่อมต่อ Google Sheets")
 
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
