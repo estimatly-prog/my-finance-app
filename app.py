@@ -559,7 +559,36 @@ elif menu == "📅 Yearly Planning":
         )
         
         st.plotly_chart(fig_proj, use_container_width=True)
+        
+# --- [NEW] SECTION: UPCOMING STRATEGIC ACTIONS ---
+        st.write("---")
+        # คำนวณหาเดือนหน้า
+        current_month_num = datetime.now().month
+        next_month_num = 1 if current_month_num == 12 else current_month_num + 1
+        next_month_str = str(next_month_num)
+        
+        # กรองรายการที่จะเกิดขึ้นในเดือนหน้า ( Yearly ที่ระบุเดือนหน้า หรือรายการ Monthly ทั้งหมด)
+        upcoming_items = df_fixed_expenses[
+            (df_fixed_expenses['Cycle_Month'].astype(str) == next_month_str) | 
+            (df_fixed_expenses['Cycle_Month'].astype(str).str.upper().isin(['ALL', '0']))
+        ]
 
+        st.markdown(f"#### 🔔 Next Month's Focus: {calendar.month_name[next_month_num]}")
+        
+        if not upcoming_items.empty:
+            # แสดงเฉพาะรายการที่เป็น Yearly บิลใหญ่ก่อน เพื่อให้ความสำคัญ
+            yearly_alerts = upcoming_items[upcoming_items['Frequency'].astype(str).str.lower() == 'yearly']
+            
+            if not yearly_alerts.empty:
+                for _, alert in yearly_alerts.iterrows():
+                    st.warning(f"**Annual Renewal:** {alert['Item']} (฿{alert['Amount']:,.2f}) is due next month! \n\n *Note: {alert['Note']}*")
+            
+            # ทำเป็นสรุปยอดรวมที่ต้องเตรียมสำหรับเดือนหน้า
+            next_month_total = projection[next_month_str]
+            st.success(f"**Liquidity Requirement:** You need to prepare approximately **฿{next_month_total:,.2f}** for next month's fixed obligations.")
+        else:
+            st.info("No major renewals scheduled for next month.")
+            
         # 4. STRATEGIC INVENTORY TABLE
         st.write("---")
         st.markdown("#### 📋 Strategic Inventory")
