@@ -72,6 +72,7 @@ try:
     df_goals = load_public_data(SHEET_URL, "1271566138")
     df_master = load_public_data(SHEET_URL, "687236707")
     df_rules = load_public_data(SHEET_URL, "700317739")
+    df_fixed_expenses = load_public_data(SHEET_URL, "2141043717")
 except:
     st.error("Connection Error")
 
