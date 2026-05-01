@@ -544,7 +544,7 @@ elif menu == "📅 Yearly Planning":
         
         # 5. INSIGHT BOX
         peak_month = proj_df.loc[proj_df['Expected_Outflow'].idxmax(), 'Month']
-        st.info(f"💡 **Strategic Note:**{peak_month}** is the month with the highest expenses, so you should make sure your liquidity is well prepared.")
+        st.info(f"💡 **Strategic Note: **{peak_month}** is the month with the highest expenses, so you should make sure your liquidity is well prepared.")
     else:
         st.warning("⚠️ ไม่พบข้อมูลใน Sheet Fixed_Expenses")
 
