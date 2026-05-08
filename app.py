@@ -429,14 +429,23 @@ elif menu == "📈 Wealth Portfolio":
         st.metric("Total Net Worth", f"{total_v:,.2f} THB")
 
         # 2. Advanced Table View
-        st.markdown("Asset Details")
+        st.markdown("### Asset Details") # ใส่เครื่องหมาย ### เพื่อให้ตัวเล็กลงและดูเป็นระเบียบ
+        
+        # --- เพิ่มส่วนนี้: เลือกเฉพาะคอลัมน์ที่ต้องการแสดง ---
+        # เลือกเอาเฉพาะที่เราอยากโชว์ ไม่เอาคอลัมน์ Z หรือคอลัมน์ส่วนเกินอื่นๆ
+        cols_to_show = ["Asset_Name", "Type", "Units", "Price_Per_Unit", "Value", "Note"]
+        df_display = df_portfolio[cols_to_show].copy() 
+        # ----------------------------------------------
+
         st.dataframe(
-            df_portfolio,
+            df_display, # ใช้ตัวแปรที่เราคัดเลือกคอลัมน์แล้ว
             column_config={
-                "Units": st.column_config.NumberColumn(format="%d"),
-                "Price_Per_Unit": st.column_config.NumberColumn(format="฿%,.2f"),
-                "Value": st.column_config.NumberColumn(format="฿%,.2f"),
-                "Note": st.column_config.TextColumn("Note", width="large") # ขยายช่อง Note ให้กว้างขึ้น
+                "Asset_Name": st.column_config.TextColumn("Asset Name", width="medium"),
+                "Type": st.column_config.TextColumn("Category", width="small"),
+                "Units": st.column_config.NumberColumn("Units", format="%d"),
+                "Price_Per_Unit": st.column_config.NumberColumn("Price/Unit", format="฿%,.2f"),
+                "Value": st.column_config.NumberColumn("Total Value", format="฿%,.2f"),
+                "Note": st.column_config.TextColumn("Note", width="large")
             },
             use_container_width=True,
             hide_index=True
