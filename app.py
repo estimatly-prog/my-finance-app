@@ -6,7 +6,7 @@ import plotly.express as px
 import calendar
 import time
 import plotly.graph_objects as go
-from src.database import load_all_data
+from src.database import get_worksheet_data
 from views import portfolio
 
 # 1. Page Configuration
@@ -66,32 +66,12 @@ with st.sidebar:
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
-# 4. DATA LOADING (Load once for all pages)
-#try:
-    #df_raw = load_public_data(SHEET_URL, "0")
-    #df_portfolio = load_public_data(SHEET_URL, "1218817484")
-    #df_budget = load_public_data(SHEET_URL, "2055623351")
-    #df_goals = load_public_data(SHEET_URL, "1271566138")
-    #df_master = load_public_data(SHEET_URL, "687236707")
-    #df_rules = load_public_data(SHEET_URL, "700317739")
-    #df_fixed_expenses = load_public_data(SHEET_URL, "2141043717")
-#except:
-    #st.error("Connection Error")
-
-    all_data = load_all_data()
-    st.write("ตรวจสอบข้อมูลที่โหลดได้:", all_data.keys()) # ดูว่ามีหน้าไหนโหลดมาได้บ้าง
-    if 'portfolio' in all_data:
-        st.write("จำนวนแถวใน Portfolio:", len(all_data['portfolio']))
-    df_raw = all_data.get('cash_flow', pd.DataFrame())
-    df_portfolio = all_data.get('portfolio', pd.DataFrame())
-    df_budget = all_data.get('budget', pd.DataFrame())
-    df_goals = all_data.get('goals', pd.DataFrame())
-    df_master = all_data.get('master', pd.DataFrame())
-    df_rules = all_data.get('rules', pd.DataFrame())
-    df_fixed_expenses = all_data.get('fixed_expenses', pd.DataFrame())
 
 # --- PAGE 1: CASH FLOW (New Strategic Layout) ---
 if menu == "💸 Cash Flow":
+    df_raw = get_worksheet_data("Expenses")
+    df_portfolio = get_worksheet_data("Portfolio")
+    
     st.markdown('<h1 class="app-title">CASH FLOW.</h1>', unsafe_allow_html=True)
     
     # 1. 📊 ADVANCED INSIGHTS (The Pilot's Cockpit)
@@ -431,10 +411,12 @@ if menu == "💸 Cash Flow":
 
 # --- PAGE 2: WEALTH PORTFOLIO ---
 elif menu == "📈 Wealth Portfolio":
+    df_portfolio = get_worksheet_data("Portfolio")
     portfolio.show_portfolio(df_portfolio)
 
 # --- PAGE: YEARLY PLANNING [GLOBAL PROFESSIONAL EDITION] ---
 elif menu == "📅 Yearly Planning":
+    df_fixed_expenses = get_worksheet_data("Fixed_Expenses")
     # Using English for International Standards
     st.markdown('<h1 class="app-title">YEARLY STRATEGY.</h1>', unsafe_allow_html=True)
     
@@ -585,6 +567,9 @@ elif menu == "📅 Yearly Planning":
         
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
+    df_master = get_worksheet_data("Cards_Master")
+    df_rules = get_worksheet_data("Multiplier_Rules")
+    
     st.markdown('<h1 class="app-title">MY WALLET.</h1>', unsafe_allow_html=True)
     
     if not df_master.empty and not df_raw.empty:
