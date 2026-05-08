@@ -13,8 +13,10 @@ def load_all_data():
     """ดึงข้อมูลทุก Sheet ที่ต้องใช้ (ย้ายมาจาก app.py บรรทัดที่ 67-73)"""
     try:
         def read_sheet(gid):
-            base_url = SHEET_URL.split('/edit')[0]
-            csv_url = f"{base_url}/export?format=csv&gid={gid}"
+            # วิธีที่ปลอดภัยที่สุดคือระบุ ID ของไฟล์ตรงๆ เลย
+            # ดึงมาจากลิงก์ของคุณ: 1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4
+            file_id = "1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4"
+            csv_url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv&gid={gid}"
             return pd.read_csv(csv_url)
 
         # คืนค่าเป็น Dictionary เพื่อให้หน้าอื่นๆ เรียกใช้ง่าย
