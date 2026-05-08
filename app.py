@@ -8,6 +8,7 @@ import time
 import plotly.graph_objects as go
 from src.database import get_worksheet_data
 from views import portfolio
+from views import cashflow
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
