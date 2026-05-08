@@ -433,28 +433,6 @@ if menu == "💸 Cash Flow":
 elif menu == "📈 Wealth Portfolio":
     portfolio.show_portfolio(df_portfolio)
 
-    # 4. Management System
-    with st.expander("🛠️ Manage Assets (Add/Edit/Delete)"):
-        with st.form("asset_mgmt"):
-            a1, a2, a3, a4 = st.columns(4)
-            name = a1.text_input("Asset Name")
-            atype = a2.selectbox("Type", ["Stock", "Crypto", "Cash", "Gold", "Real Estate"])
-            unit = a3.number_input("Units", min_value=0, step=1)
-            price = a4.number_input("Price/Unit", min_value=0, step=1)
-            anote = st.text_input("Note")
-            if st.form_submit_button("Save to Portfolio"):
-                conn = st.connection("gsheets", type=GSheetsConnection)
-                curr = conn.read(worksheet="Portfolio", ttl=0)
-                new_a = pd.DataFrame([{"Asset_Name": name, "Type": atype, "Units": unit, "Price_Per_Unit": price, "Note": anote}])
-                updated = pd.concat([curr[curr['Asset_Name']!=name], new_a], ignore_index=True)
-                conn.update(worksheet="Portfolio", data=updated)
-                st.rerun()
-        
-        st.write("---")
-        to_del = st.selectbox("Select Asset to Remove", df_portfolio['Asset_Name'].unique())
-        if st.button("🗑️ Confirm Delete"):
-            if delete_asset(to_del): st.rerun()
-
 # --- PAGE: YEARLY PLANNING [GLOBAL PROFESSIONAL EDITION] ---
 elif menu == "📅 Yearly Planning":
     # Using English for International Standards
