@@ -45,3 +45,24 @@ def save_new_asset(new_a_df):
         st.cache_data.clear()
         return True
     except: return False
+
+
+def save_transaction(new_entry_df):
+    """ฟังก์ชันบันทึกรายจ่ายลง Google Sheets และล้าง Cache"""
+    try:
+        conn = get_connection()
+        # ดึงข้อมูลปัจจุบันแบบสดๆ (ttl=0) เพื่อนำมาต่อท้าย
+        existing_data = conn.read(worksheet="Expenses", ttl=0)
+        
+        # ต่อแถวใหม่เข้าไป
+        updated_df = pd.concat([existing_data, new_entry_df], ignore_index=True)
+        
+        # อัปเดตกลับไปที่ Google Sheets
+        conn.update(worksheet="Expenses", data=updated_df)
+        
+        # สำคัญมาก: ล้าง Cache ทุกอย่างเพื่อให้หน้า Cash Flow โหลดข้อมูลใหม่มาโชว์ทันที
+        st.cache_data.clear()
+        return True
+    except Exception as e:
+        st.error(f"❌ บันทึกไม่สำเร็จ: {e}")
+        return False
