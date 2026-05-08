@@ -167,134 +167,134 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
         
         # --- [STEP 6] DATA TABLES & FORECASTING ---
         # 3. 📊 VISUAL ANALYTICS & HISTORY
-      if not df_raw.empty:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("##### Methods Breakdown")
-            pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
-            fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300)
-            st.plotly_chart(fig_bar, use_container_width=True)
-        with c2:
-            st.markdown("##### Category Distribution")
-            cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-            fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
-            st.plotly_chart(fig_pie, use_container_width=True)
-
-        st.write("---")
-        st.markdown("#### 📜 Recent Transactions")
-        st.dataframe(
-            df_filtered.sort_values('Date', ascending=False),
-            column_config={
-                "Amount": st.column_config.NumberColumn(format="฿%,.2f"),
-                "Date": st.column_config.DateColumn(format="DD/MM/YYYY")
-            },
-            use_container_width=True, 
-            hide_index=True
-        )
-
-        # --- CASH FLOW FORECASTING SECTION (Hybrid Strategic) ---
-        st.write("---")
-        st.markdown("### 🔮 Cash Flow Forecasting")
-        
-        if not df_filtered.empty:
-            # เตรียมข้อมูลพื้นฐาน
-            days_in_month = calendar.monthrange(datetime.now().year, datetime.now().month)[1]
-            days_passed = num_days_passed
-            days_remaining = days_in_month - days_passed
-            
-            # 1. พยากรณ์ "เฉพาะค่ากิน" (Food Pace)
-            projected_food = actual_food_pace * days_in_month
-            food_budget_gap = (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month) - projected_food
-            
-            # 2. ยอดใช้จ่าย "หมวดอื่นๆ" ที่จ่ายไปแล้วจริง (Supermarket, Bills, etc.)
-            other_spent = df_filtered[~df_filtered['Category'].isin(['Food', 'Beverage', 'Dessert', '7-11'])]['Amount'].sum()
-            
-            # 3. ยอดรวมพยากรณ์สิ้นเดือน (Total projected everything)
-            total_projected_all = projected_food + other_spent
-            
-            c1, c2, c3 = st.columns(3)
-            
+          if not df_raw.empty:
+            c1, c2 = st.columns(2)
             with c1:
-                # ตัวนี้จะบอกว่า สิ้นเดือนนี้เงินจะออกจากกระเป๋ารวมกี่บาท
-                st.metric("Total Month-End Forecast", f"{total_projected_all:,.0f} ฿")
-                st.caption(f"Estimate of EVERY expenditure (Food pace + Fixed costs)")
-        
+                st.markdown("##### Methods Breakdown")
+                pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
+                fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300)
+                st.plotly_chart(fig_bar, use_container_width=True)
             with c2:
-                # Safe-to-Spend: ยังคงคุมเฉพาะ "ค่ากิน" เพื่อไม่ให้วินัย President Kaphrao หลุด
-                safe_to_spend = (target_so_far + (days_remaining * BUDGET_PLAN["DAILY_LIMIT"]) - total_food_month) / days_remaining if days_remaining > 0 else 0
-                st.metric("Safe-to-Spend Today (Food)", f"{safe_to_spend:,.0f} ฿")
-                st.caption(f"Max food budget for today to stay under {BUDGET_PLAN['DAILY_LIMIT']} ฿ avg.")
+                st.markdown("##### Category Distribution")
+                cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
+                fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
+                st.plotly_chart(fig_pie, use_container_width=True)
+    
+            st.write("---")
+            st.markdown("#### 📜 Recent Transactions")
+            st.dataframe(
+                df_filtered.sort_values('Date', ascending=False),
+                column_config={
+                    "Amount": st.column_config.NumberColumn(format="฿%,.2f"),
+                    "Date": st.column_config.DateColumn(format="DD/MM/YYYY")
+                },
+                use_container_width=True, 
+                hide_index=True
+            )
+    
+            # --- CASH FLOW FORECASTING SECTION (Hybrid Strategic) ---
+            st.write("---")
+            st.markdown("### 🔮 Cash Flow Forecasting")
+            
+            if not df_filtered.empty:
+                # เตรียมข้อมูลพื้นฐาน
+                days_in_month = calendar.monthrange(datetime.now().year, datetime.now().month)[1]
+                days_passed = num_days_passed
+                days_remaining = days_in_month - days_passed
                 
-            with c3:
-                # แสดงสถานะวินัยการกิน (Healthy หรือ Over-pacing)
-                status_color = "🟢 Healthy" if food_budget_gap > 0 else "🔴 Over-pacing"
-                st.subheader(status_color)
-                # แถบ Progress เฉพาะงบกิน
-                food_progress = min(max(total_food_month / (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month), 0.0), 1.0)
-                st.progress(food_progress)
-                st.caption(f"Food Budget Used: {food_progress*100:.1f}%")
+                # 1. พยากรณ์ "เฉพาะค่ากิน" (Food Pace)
+                projected_food = actual_food_pace * days_in_month
+                food_budget_gap = (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month) - projected_food
                 
-        # --- STRATEGIC BUCKET MONITORING ---
-        st.write("---")
-        st.markdown("### 📦 Strategic Budget Inventory")
-        
-        col_s1, col_s2 = st.columns(2)
-        
-        with col_s1:
-            # คำนวณยอด Supermarket (3,000)
-            spent_super = df_filtered[df_filtered['Category'].isin(['Supermarket', 'Groceries'])]['Amount'].sum()
-            rem_super = BUDGET_PLAN["MONTHLY_SUPER"] - spent_super
-            st.metric("Supermarket Inventory", f"{rem_super:,.0f} ฿ Left", delta=f"Spent: {spent_super:,.0f}")
-            st.progress(min(max(spent_super / BUDGET_PLAN["MONTHLY_SUPER"], 0.0), 1.0))
-            st.caption(f"Monthly limit: {BUDGET_PLAN['MONTHLY_SUPER']:,} ฿")
-
-        with col_s2:
-            # คำนวณ Fixed Bills (630)
-            spent_fixed = df_filtered[df_filtered['Category'].isin(['Internet Bill', 'Music'])]['Amount'].sum()
-            rem_fixed = BUDGET_PLAN["FIXED_BILLS"] - spent_fixed
-            st.metric("Fixed Bills Remaining", f"{rem_fixed:,.0f} ฿", delta=f"Paid: {spent_fixed:,.0f}")
-            st.progress(min(max(spent_fixed / BUDGET_PLAN["FIXED_BILLS"], 0.0), 1.0))
-            st.caption(f"Monthly target: {BUDGET_PLAN['FIXED_BILLS']:,} ฿")
-            
-        # --- LIFESTYLE & CONNECTION INSIGHT (Fixed Version) ---
-        st.write("---")
-        st.markdown("### Lifestyle & Connection Insight")
-        
-        # แก้จุดที่ 1: ใช้ df_filtered แทน df_raw เพื่อให้ข้อมูลเปลี่ยนตามเดือนที่เลือก
-        analysis_df = df_filtered.copy() 
-        
-        # แก้จุดที่ 2: คำนวณ Actual_Paid จากคอลัมน์ใหม่ที่เราออกแบบไว้ (ถ้ายังไม่มีใน df)
-        if 'Total_Bill' in analysis_df.columns and 'Refund_Amount' in analysis_df.columns:
-            analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
-        else:
-            # fallback กรณีข้อมูลแถวเก่าๆ ไม่มีคอลัมน์ใหม่ ให้ใช้ Amount ปกติ
-            analysis_df['Actual_Paid'] = analysis_df['Amount']
-        
-        if 'Relationship' in analysis_df.columns and not analysis_df.empty:
-            # 1. สร้างตัวเลือกความสัมพันธ์ (ดึงเฉพาะที่มีในเดือนนั้นๆ)
-            all_relations = sorted(analysis_df['Relationship'].unique().tolist())
-            selected_rel = st.selectbox("Select Relationship to Inspect:", all_relations)
-            
-            # 2. คำนวณยอดตามคนที่เลือก (ใช้ข้อมูลที่กรองเดือนแล้ว)
-            lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
-            specific_spend = lifestyle_df[lifestyle_df['Relationship'] == selected_rel]['Actual_Paid'].sum()
-            total_actual = lifestyle_df['Actual_Paid'].sum()
-            
-            lc1, lc2 = st.columns([1, 2])
-            with lc1:
-                st.markdown(f"##### Details for: {selected_rel}")
-                st.metric(f"Total Spent with {selected_rel}", f"{specific_spend:,.0f} THB")
-                st.caption(f"Net spending in {selected_month} (after refunds).")
+                # 2. ยอดใช้จ่าย "หมวดอื่นๆ" ที่จ่ายไปแล้วจริง (Supermarket, Bills, etc.)
+                other_spent = df_filtered[~df_filtered['Category'].isin(['Food', 'Beverage', 'Dessert', '7-11'])]['Amount'].sum()
                 
-                if total_actual > 0:
-                    ratio = (specific_spend / total_actual) * 100
-                    st.write(f"**{ratio:.1f}%** of monthly spend")
+                # 3. ยอดรวมพยากรณ์สิ้นเดือน (Total projected everything)
+                total_projected_all = projected_food + other_spent
+                
+                c1, c2, c3 = st.columns(3)
+                
+                with c1:
+                    # ตัวนี้จะบอกว่า สิ้นเดือนนี้เงินจะออกจากกระเป๋ารวมกี่บาท
+                    st.metric("Total Month-End Forecast", f"{total_projected_all:,.0f} ฿")
+                    st.caption(f"Estimate of EVERY expenditure (Food pace + Fixed costs)")
             
-            with lc2:
-                fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
-                                  hole=0.6, color_discrete_sequence=px.colors.sequential.Mint_r,
-                                  template="plotly_dark", title=f"Connection Mix: {selected_month}")
-                fig_life.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=True)
-                st.plotly_chart(fig_life, use_container_width=True)
-        else:
-            st.info(f"📅 No relationship data found for {selected_month}")
+                with c2:
+                    # Safe-to-Spend: ยังคงคุมเฉพาะ "ค่ากิน" เพื่อไม่ให้วินัย President Kaphrao หลุด
+                    safe_to_spend = (target_so_far + (days_remaining * BUDGET_PLAN["DAILY_LIMIT"]) - total_food_month) / days_remaining if days_remaining > 0 else 0
+                    st.metric("Safe-to-Spend Today (Food)", f"{safe_to_spend:,.0f} ฿")
+                    st.caption(f"Max food budget for today to stay under {BUDGET_PLAN['DAILY_LIMIT']} ฿ avg.")
+                    
+                with c3:
+                    # แสดงสถานะวินัยการกิน (Healthy หรือ Over-pacing)
+                    status_color = "🟢 Healthy" if food_budget_gap > 0 else "🔴 Over-pacing"
+                    st.subheader(status_color)
+                    # แถบ Progress เฉพาะงบกิน
+                    food_progress = min(max(total_food_month / (BUDGET_PLAN["DAILY_LIMIT"] * days_in_month), 0.0), 1.0)
+                    st.progress(food_progress)
+                    st.caption(f"Food Budget Used: {food_progress*100:.1f}%")
+                    
+            # --- STRATEGIC BUCKET MONITORING ---
+            st.write("---")
+            st.markdown("### 📦 Strategic Budget Inventory")
+            
+            col_s1, col_s2 = st.columns(2)
+            
+            with col_s1:
+                # คำนวณยอด Supermarket (3,000)
+                spent_super = df_filtered[df_filtered['Category'].isin(['Supermarket', 'Groceries'])]['Amount'].sum()
+                rem_super = BUDGET_PLAN["MONTHLY_SUPER"] - spent_super
+                st.metric("Supermarket Inventory", f"{rem_super:,.0f} ฿ Left", delta=f"Spent: {spent_super:,.0f}")
+                st.progress(min(max(spent_super / BUDGET_PLAN["MONTHLY_SUPER"], 0.0), 1.0))
+                st.caption(f"Monthly limit: {BUDGET_PLAN['MONTHLY_SUPER']:,} ฿")
+    
+            with col_s2:
+                # คำนวณ Fixed Bills (630)
+                spent_fixed = df_filtered[df_filtered['Category'].isin(['Internet Bill', 'Music'])]['Amount'].sum()
+                rem_fixed = BUDGET_PLAN["FIXED_BILLS"] - spent_fixed
+                st.metric("Fixed Bills Remaining", f"{rem_fixed:,.0f} ฿", delta=f"Paid: {spent_fixed:,.0f}")
+                st.progress(min(max(spent_fixed / BUDGET_PLAN["FIXED_BILLS"], 0.0), 1.0))
+                st.caption(f"Monthly target: {BUDGET_PLAN['FIXED_BILLS']:,} ฿")
+                
+            # --- LIFESTYLE & CONNECTION INSIGHT (Fixed Version) ---
+            st.write("---")
+            st.markdown("### Lifestyle & Connection Insight")
+            
+            # แก้จุดที่ 1: ใช้ df_filtered แทน df_raw เพื่อให้ข้อมูลเปลี่ยนตามเดือนที่เลือก
+            analysis_df = df_filtered.copy() 
+            
+            # แก้จุดที่ 2: คำนวณ Actual_Paid จากคอลัมน์ใหม่ที่เราออกแบบไว้ (ถ้ายังไม่มีใน df)
+            if 'Total_Bill' in analysis_df.columns and 'Refund_Amount' in analysis_df.columns:
+                analysis_df['Actual_Paid'] = analysis_df['Total_Bill'] - analysis_df['Refund_Amount']
+            else:
+                # fallback กรณีข้อมูลแถวเก่าๆ ไม่มีคอลัมน์ใหม่ ให้ใช้ Amount ปกติ
+                analysis_df['Actual_Paid'] = analysis_df['Amount']
+            
+            if 'Relationship' in analysis_df.columns and not analysis_df.empty:
+                # 1. สร้างตัวเลือกความสัมพันธ์ (ดึงเฉพาะที่มีในเดือนนั้นๆ)
+                all_relations = sorted(analysis_df['Relationship'].unique().tolist())
+                selected_rel = st.selectbox("Select Relationship to Inspect:", all_relations)
+                
+                # 2. คำนวณยอดตามคนที่เลือก (ใช้ข้อมูลที่กรองเดือนแล้ว)
+                lifestyle_df = analysis_df.groupby('Relationship')['Actual_Paid'].sum().reset_index()
+                specific_spend = lifestyle_df[lifestyle_df['Relationship'] == selected_rel]['Actual_Paid'].sum()
+                total_actual = lifestyle_df['Actual_Paid'].sum()
+                
+                lc1, lc2 = st.columns([1, 2])
+                with lc1:
+                    st.markdown(f"##### Details for: {selected_rel}")
+                    st.metric(f"Total Spent with {selected_rel}", f"{specific_spend:,.0f} THB")
+                    st.caption(f"Net spending in {selected_month} (after refunds).")
+                    
+                    if total_actual > 0:
+                        ratio = (specific_spend / total_actual) * 100
+                        st.write(f"**{ratio:.1f}%** of monthly spend")
+                
+                with lc2:
+                    fig_life = px.pie(lifestyle_df, values='Actual_Paid', names='Relationship', 
+                                      hole=0.6, color_discrete_sequence=px.colors.sequential.Mint_r,
+                                      template="plotly_dark", title=f"Connection Mix: {selected_month}")
+                    fig_life.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=True)
+                    st.plotly_chart(fig_life, use_container_width=True)
+            else:
+                st.info(f"📅 No relationship data found for {selected_month}")
