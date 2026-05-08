@@ -7,13 +7,18 @@ from src.database import delete_asset, save_new_asset
 
 def show_portfolio(df_portfolio):
     st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
+    
+    if df_portfolio.empty:
+        st.warning("⚠️ ข้อมูลว่างเปล่า (Empty DataFrame)")
+        return
+    
+    # --- เพิ่มบรรทัดนี้เพื่อดูชื่อคอลัมน์ทั้งหมดที่ระบบอ่านได้ ---
+    st.write("คอลัมน์ที่ระบบเห็นตอนนี้:", df_portfolio.columns.tolist())
+    # -------------------------------------------------------
 
-    # --- เพิ่ม Check ตรงนี้ ---
-    if df_portfolio.empty or 'Asset_Name' not in df_portfolio.columns:
-        st.warning("⚠️ ไม่พบข้อมูลในระบบ หรือชื่อคอลัมน์ 'Asset_Name' ไม่ถูกต้อง")
-        st.write("ข้อมูลที่ได้รับมา:", df_portfolio) # ช่วย Debug ดูว่าได้ตารางหน้าตาแบบไหนมา
-        return # หยุดการทำงานของฟังก์ชันนี้ทันที
-    # -----------------------
+    if 'Asset_Name' not in df_portfolio.columns:
+        st.error(f"❌ หาคอลัมน์ 'Asset_Name' ไม่เจอ")
+        return
     
     if not df_portfolio.empty:
         # 1. Calculation (เหมือนเดิมเป๊ะ)
