@@ -2,34 +2,28 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# 1. ระบุ ID ของไฟล์ให้ชัดเจน (ดึงจากลิงก์ที่คุณส่งมา)
-FILE_ID = "1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4"
-
-def read_sheet(gid):
-    """ฟังก์ชันกลางสำหรับดึง CSV จาก Google Sheets"""
-    url = f"https://docs.google.com/spreadsheets/d/{FILE_ID}/export?format=csv&gid={gid}"
-    return pd.read_csv(url)
-
 def load_all_data():
-    """ฟังก์ชันโหลดข้อมูลทุกหน้า"""
+    """ฟังก์ชันโหลดข้อมูลแบบระบุ URL ตรงๆ ทีละหน้า"""
     data = {}
+    # กำหนดฐานของ URL (ID ของไฟล์คุณ)
+    base = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/export?format=csv&gid="
+    
     try:
-        # ทดลองดึงทีละหน้า ถ้าหน้าไหนพัง จะได้รู้ว่าพังที่ GID ไหน
-        data["cash_flow"] = read_sheet("0")
-        data["portfolio"] = read_sheet("1218817484")
-        data["budget"] = read_sheet("2055623351")
-        data["goals"] = read_sheet("1271566138")
-        data["master"] = read_sheet("687236707")
-        data["rules"] = read_sheet("700317739")
-        data["fixed_expenses"] = read_sheet("2141043717")
+        # ลองดึงทีละหน้าแบบ Hard-code URL เพื่อความชัวร์
+        data["cash_flow"] = pd.read_csv(f"{base}0")
+        data["portfolio"] = pd.read_csv(f"{base}1218817484")
+        data["budget"] = pd.read_csv(f"{base}2055623351")
+        data["goals"] = pd.read_csv(f"{base}1271566138")
+        data["master"] = pd.read_csv(f"{base}687236707")
+        data["rules"] = pd.read_csv(f"{base}700317739")
+        data["fixed_expenses"] = pd.read_csv(f"{base}2141043717")
         return data
     except Exception as e:
-        # ถ้าพัง ให้โชว์ Error เลยว่าพังเพราะอะไร และ URL ไหน
-        st.error(f"❌ ดึงข้อมูลไม่สำเร็จ: {e}")
+        # แสดง Error ออกมาให้เห็นชัดๆ ว่าตัวไหนมีปัญหา
+        st.error(f"❌ ระบบดึงข้อมูลขัดข้อง: {e}")
         return {}
 
 def delete_asset(asset_name):
-    """ฟังก์ชันลบ (ใช้ GSheetsConnection เหมือนเดิม)"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         df = conn.read(worksheet="Portfolio", ttl=0)
@@ -39,7 +33,6 @@ def delete_asset(asset_name):
     except: return False
 
 def save_new_asset(new_a_df):
-    """ฟังก์ชันบันทึก (ใช้ GSheetsConnection เหมือนเดิม)"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         curr = conn.read(worksheet="Portfolio", ttl=0)
