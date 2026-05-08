@@ -169,6 +169,7 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
         
         # --- [STEP 6] DATA TABLES & FORECASTING ---
         # 3. 📊 VISUAL ANALYTICS & HISTORY
+        st.write("---")
             if not df_raw.empty:
                 c1, c2 = st.columns(2)
                 with c1:
