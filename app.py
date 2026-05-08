@@ -567,6 +567,7 @@ elif menu == "📅 Yearly Planning":
         
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
+    df_raw = get_worksheet_data("Expenses")
     df_master = get_worksheet_data("Cards_Master")
     df_rules = get_worksheet_data("Multiplier_Rules")
     
