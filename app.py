@@ -6,6 +6,8 @@ import plotly.express as px
 import calendar
 import time
 import plotly.graph_objects as go
+from src.database import load_all_data
+from views import portfolio
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
@@ -65,16 +67,25 @@ with st.sidebar:
     st.caption("Strategic Intelligence v2.0")
 
 # 4. DATA LOADING (Load once for all pages)
-try:
-    df_raw = load_public_data(SHEET_URL, "0")
-    df_portfolio = load_public_data(SHEET_URL, "1218817484")
-    df_budget = load_public_data(SHEET_URL, "2055623351")
-    df_goals = load_public_data(SHEET_URL, "1271566138")
-    df_master = load_public_data(SHEET_URL, "687236707")
-    df_rules = load_public_data(SHEET_URL, "700317739")
-    df_fixed_expenses = load_public_data(SHEET_URL, "2141043717")
-except:
-    st.error("Connection Error")
+#try:
+    #df_raw = load_public_data(SHEET_URL, "0")
+    #df_portfolio = load_public_data(SHEET_URL, "1218817484")
+    #df_budget = load_public_data(SHEET_URL, "2055623351")
+    #df_goals = load_public_data(SHEET_URL, "1271566138")
+    #df_master = load_public_data(SHEET_URL, "687236707")
+    #df_rules = load_public_data(SHEET_URL, "700317739")
+    #df_fixed_expenses = load_public_data(SHEET_URL, "2141043717")
+#except:
+    #st.error("Connection Error")
+
+    all_data = load_all_data()
+    df_raw = all_data.get('cash_flow', pd.DataFrame())
+    df_portfolio = all_data.get('portfolio', pd.DataFrame())
+    df_budget = all_data.get('budget', pd.DataFrame())
+    df_goals = all_data.get('goals', pd.DataFrame())
+    df_master = all_data.get('master', pd.DataFrame())
+    df_rules = all_data.get('rules', pd.DataFrame())
+    df_fixed_expenses = all_data.get('fixed_expenses', pd.DataFrame())
 
 # --- PAGE 1: CASH FLOW (New Strategic Layout) ---
 if menu == "💸 Cash Flow":
@@ -417,48 +428,7 @@ if menu == "💸 Cash Flow":
 
 # --- PAGE 2: WEALTH PORTFOLIO ---
 elif menu == "📈 Wealth Portfolio":
-    st.markdown('<h1 class="app-title">WEALTH.</h1>', unsafe_allow_html=True)
-    
-    if not df_portfolio.empty:
-        # 1. Calculation
-        df_portfolio['Units'] = pd.to_numeric(df_portfolio['Units'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-        df_portfolio['Price_Per_Unit'] = pd.to_numeric(df_portfolio['Price_Per_Unit'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-        df_portfolio['Value'] = df_portfolio['Units'] * df_portfolio['Price_Per_Unit']
-        
-        total_v = df_portfolio['Value'].sum()
-        st.metric("Total Net Worth", f"{total_v:,.2f} THB")
-
-        # 2. Advanced Table View
-        st.markdown("### Asset Details") # ใส่เครื่องหมาย ### เพื่อให้ตัวเล็กลงและดูเป็นระเบียบ
-        
-        # --- เพิ่มส่วนนี้: เลือกเฉพาะคอลัมน์ที่ต้องการแสดง ---
-        # เลือกเอาเฉพาะที่เราอยากโชว์ ไม่เอาคอลัมน์ Z หรือคอลัมน์ส่วนเกินอื่นๆ
-        cols_to_show = ["Asset_Name", "Type", "Units", "Price_Per_Unit", "Value", "Note"]
-        df_display = df_portfolio[cols_to_show].copy() 
-        # ----------------------------------------------
-
-        st.dataframe(
-            df_display, # ใช้ตัวแปรที่เราคัดเลือกคอลัมน์แล้ว
-            column_config={
-                "Asset_Name": st.column_config.TextColumn("Asset Name", width="medium"),
-                "Type": st.column_config.TextColumn("Category", width="small"),
-                "Units": st.column_config.NumberColumn("Units", format="%d"),
-                "Price_Per_Unit": st.column_config.NumberColumn("Price/Unit", format="฿%,.2f"),
-                "Value": st.column_config.NumberColumn("Total Value", format="฿%,.2f"),
-                "Note": st.column_config.TextColumn("Note", width="large")
-            },
-            use_container_width=True,
-            hide_index=True
-        )
-
-        # 3. Charts
-        col1, col2 = st.columns(2)
-        with col1:
-            fig_pie = px.pie(df_portfolio, values='Value', names='Asset_Name', hole=0.5, template="plotly_dark", title="Asset Allocation")
-            st.plotly_chart(fig_pie, use_container_width=True)
-        with col2:
-            fig_type = px.bar(df_portfolio.groupby('Type')['Value'].sum().reset_index(), x='Type', y='Value', color='Type', template="plotly_dark", title="By Category")
-            st.plotly_chart(fig_type, use_container_width=True)
+    portfolio.show_portfolio(df_portfolio)
 
     # 4. Management System
     with st.expander("🛠️ Manage Assets (Add/Edit/Delete)"):
