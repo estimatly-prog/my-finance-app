@@ -81,7 +81,7 @@ with st.sidebar:
     all_data = load_all_data()
     st.write("ตรวจสอบข้อมูลที่โหลดได้:", all_data.keys()) # ดูว่ามีหน้าไหนโหลดมาได้บ้าง
     if 'portfolio' in all_data:
-    st.write("จำนวนแถวใน Portfolio:", len(all_data['portfolio']))
+        st.write("จำนวนแถวใน Portfolio:", len(all_data['portfolio']))
     df_raw = all_data.get('cash_flow', pd.DataFrame())
     df_portfolio = all_data.get('portfolio', pd.DataFrame())
     df_budget = all_data.get('budget', pd.DataFrame())
