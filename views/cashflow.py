@@ -38,6 +38,8 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
         num_days_passed = datetime.now().day if selected_month == datetime.now().strftime('%Y-%m') else df_filtered['Date'].dt.days_in_month.iloc[0]
         actual_food_pace = total_daily_food / num_days_passed if num_days_passed > 0 else 0
 
+        total_food_month = daily_items['Amount'].sum()
+        
         # Survival Buffer Logic
         if not df_portfolio.empty:
             temp_p = df_portfolio.copy()
