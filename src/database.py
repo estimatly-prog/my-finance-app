@@ -2,30 +2,31 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
+def get_connection():
+    """สร้างการเชื่อมต่อโดยใช้ Service Account จาก Secrets"""
+    return st.connection("gsheets", type=GSheetsConnection)
+
 def load_all_data():
-    """ฟังก์ชันโหลดข้อมูลแบบระบุ URL ตรงๆ ทีละหน้า"""
+    """ดึงข้อมูลทุกหน้าผ่านระบบ Connection (ปลอดภัยกว่า)"""
     data = {}
-    # กำหนดฐานของ URL (ID ของไฟล์คุณ)
-    base = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/export?format=csv&gid="
-    
     try:
-        # ลองดึงทีละหน้าแบบ Hard-code URL เพื่อความชัวร์
-        data["cash_flow"] = pd.read_csv(f"{base}0")
-        data["portfolio"] = pd.read_csv(f"{base}1218817484")
-        data["budget"] = pd.read_csv(f"{base}2055623351")
-        data["goals"] = pd.read_csv(f"{base}1271566138")
-        data["master"] = pd.read_csv(f"{base}687236707")
-        data["rules"] = pd.read_csv(f"{base}700317739")
-        data["fixed_expenses"] = pd.read_csv(f"{base}2141043717")
+        conn = get_connection()
+        # ใช้ชื่อ Worksheet ให้ตรงกับใน Google Sheets ของคุณเป๊ะๆ
+        data["cash_flow"] = conn.read(worksheet="Expenses", ttl=0) # หรือชื่อแผ่นแรกของคุณ
+        data["portfolio"] = conn.read(worksheet="Portfolio", ttl=0)
+        data["budget"] = conn.read(worksheet="Budget", ttl=0)
+        data["goals"] = conn.read(worksheet="Goals", ttl=0)
+        data["master"] = conn.read(worksheet="Master", ttl=0)
+        data["rules"] = conn.read(worksheet="Rules", ttl=0)
+        data["fixed_expenses"] = conn.read(worksheet="Fixed_Expenses", ttl=0)
         return data
     except Exception as e:
-        # แสดง Error ออกมาให้เห็นชัดๆ ว่าตัวไหนมีปัญหา
-        st.error(f"❌ ระบบดึงข้อมูลขัดข้อง: {e}")
+        st.error(f"❌ Connection Error: {e}")
         return {}
 
 def delete_asset(asset_name):
     try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
+        conn = get_connection()
         df = conn.read(worksheet="Portfolio", ttl=0)
         df = df[df['Asset_Name'] != asset_name]
         conn.update(worksheet="Portfolio", data=df)
@@ -34,7 +35,7 @@ def delete_asset(asset_name):
 
 def save_new_asset(new_a_df):
     try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
+        conn = get_connection()
         curr = conn.read(worksheet="Portfolio", ttl=0)
         name_to_save = new_a_df['Asset_Name'].iloc[0]
         updated = pd.concat([curr[curr['Asset_Name'] != name_to_save], new_a_df], ignore_index=True)
