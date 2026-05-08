@@ -61,9 +61,23 @@ def show_portfolio(df_portfolio):
                 if save_new_asset(new_a):
                     st.rerun()
         
-        st.write("---")
-        to_del = st.selectbox("Select Asset to Remove", df_portfolio['Asset_Name'].unique())
-        if st.button("🗑️ Confirm Delete"):
-            # เรียกใช้ฟังก์ชันลบที่เราแยกไว้ใน database.py
-            if delete_asset(to_del): 
-                st.rerun()
+            st.write("---")
+                
+                # 1. เช็คก่อนว่า df_portfolio มีข้อมูลและมีคอลัมน์ที่ต้องการไหม
+                if not df_portfolio.empty and 'Asset_Name' in df_portfolio.columns:
+                    # ดึงรายชื่อมาทำ List และเอาค่าซ้ำออก
+                    asset_list = df_portfolio['Asset_Name'].unique().tolist()
+                    
+                    if asset_list:
+                        to_del = st.selectbox("Select Asset to Remove", asset_list)
+                        
+                        if st.button("🗑️ Confirm Delete"):
+                            # เรียกใช้ฟังก์ชันลบที่เราแยกไว้ใน src/database.py
+                            if delete_asset(to_del): 
+                                st.success(f"ลบ {to_del} เรียบร้อยแล้ว!")
+                                time.sleep(1) # ให้ User เห็นข้อความก่อน
+                                st.rerun()
+                    else:
+                        st.info("ไม่มีรายการสินทรัพย์ให้ลบ")
+                else:
+                    st.warning("⚠️ ไม่สามารถโหลดรายชื่อสินทรัพย์เพื่อลบได้ (Check Data Connection)")
