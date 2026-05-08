@@ -69,7 +69,7 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
         m3.metric("Today's Spent", f"{today_food_spent:,.0f} ฿", delta=f"{diff_today:,.0f} ฿ left")
         
         diff_avg = BUDGET_PLAN["DAILY_LIMIT"] - actual_food_pace
-        m4.metric("Avg Food Pace", f"{actual_food_pace:,.0f}", delta=f"{diff_avg:,.0f} ฿ room")
+        m4.metric("Avg Food Pace", f"{actual_food_pace:,.0f} / {BUDGET_PLAN['DAILY_LIMIT']}", delta=f"{diff_avg:,.0f} ฿ room")
 
         # --- [STEP 4] TREND CHART (Plotly) ---
         st.write("---")
