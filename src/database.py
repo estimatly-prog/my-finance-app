@@ -16,7 +16,7 @@ def load_all_data():
         data["portfolio"] = conn.read(worksheet="Portfolio", ttl=0)
         data["budget"] = conn.read(worksheet="Budget", ttl=0)
         data["goals"] = conn.read(worksheet="Goals", ttl=0)
-        data["master"] = conn.read(worksheet="Master", ttl=0)
+        data["Cards_Master"] = conn.read(worksheet="Cards_Master", ttl=0)
         data["rules"] = conn.read(worksheet="Rules", ttl=0)
         data["fixed_expenses"] = conn.read(worksheet="Fixed_Expenses", ttl=0)
         return data
