@@ -138,7 +138,7 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
                 with col_f2:
                     total_bill_str = st.text_input("Total Bill", placeholder="500")
                     refund_str = st.text_input("Refund / Split", value="0")
-                     payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Central The 1 REDZ", "Cash"])
+                    payment = st.selectbox("Payment Method", ["PromptPay", "UOB World", "UOB Premier", "UOB Grab", "UOB Mercedes", "KTC Unionpay Diamond", "KTC JCB Ultimate", "Kbank The Passion", "ttb absolute", "Central The 1 REDZ", "Cash"])
                 with col_f3:
                     note = st.text_input("Note")
                     submitted = st.form_submit_button("Save Transaction")
@@ -167,18 +167,18 @@ def show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target,
         
         # --- [STEP 6] DATA TABLES & FORECASTING ---
         # 3. 📊 VISUAL ANALYTICS & HISTORY
-          if not df_raw.empty:
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown("##### Methods Breakdown")
-                pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
-                fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300)
-                st.plotly_chart(fig_bar, use_container_width=True)
-            with c2:
-                st.markdown("##### Category Distribution")
-                cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
-                fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
-                st.plotly_chart(fig_pie, use_container_width=True)
+            if not df_raw.empty:
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("##### Methods Breakdown")
+                    pay_sum = df_filtered.groupby('Payment_Method')['Amount'].sum().reset_index()
+                    fig_bar = px.bar(pay_sum, x='Payment_Method', y='Amount', color='Payment_Method', template="plotly_dark", height=300)
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                with c2:
+                    st.markdown("##### Category Distribution")
+                    cat_sum = df_filtered.groupby('Category')['Amount'].sum().reset_index()
+                    fig_pie = px.pie(cat_sum, values='Amount', names='Category', hole=0.4, template="plotly_dark", height=300)
+                    st.plotly_chart(fig_pie, use_container_width=True)
     
             st.write("---")
             st.markdown("#### 📜 Recent Transactions")
