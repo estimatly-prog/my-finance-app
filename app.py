@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from src.database import get_worksheet_data
 from views import portfolio, cashflow, yearly_planning, reward_tracking, goals
+from streamlit_option_menu import option_menu
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
@@ -122,7 +123,29 @@ with st.sidebar:
     monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
     # งบบิลประจำ (รายเดือน)
     monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
-    menu = st.radio("MAIN MENU", ["💸 Cash Flow", "📈 Wealth Portfolio", "📅 Yearly Planning", "💳 Reward Tracking", "🎯 Goals & Budget"])
+   menu = option_menu(
+        menu_title=None, # ไม่เอาหัวข้อเมนู
+        options=["💸 Cash Flow", "📈 Wealth Portfolio", "📅 Yearly Planning", "💳 Reward Tracking", "🎯 Goals & Budget"],
+        icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "target"], 
+        menu_icon="cast", 
+        default_index=0,
+        styles={
+            "container": {"padding": "0!important", "background-color": "transparent"},
+            "icon": {"color": "#8BC34A", "font-size": "20px"}, # สีเขียว Muted Lime
+            "nav-link": {
+                "font-size": "16px", 
+                "text-align": "left", 
+                "margin": "5px", 
+                "color": "#E0E0E0",
+                "--hover-color": "#1E1E1E" # สีตอนเอาเม้าส์ไปวาง
+            },
+            "nav-link-selected": {
+                "background-color": "#311B92", # สีม่วงเข้ม (ธีมหลักของเรา)
+                "color": "white",
+                "font-weight": "600"
+            },
+        }
+    )
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
