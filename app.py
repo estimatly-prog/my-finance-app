@@ -114,15 +114,6 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D
 
 with st.sidebar:
     st.markdown("""<div class="brand-container"><span class="custom-icon">👻</span><h1 style="color:white; margin:0;">VELO.</h1></div>""", unsafe_allow_html=True)
-    st.write("---")
-    # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
-    st.subheader("⚙️ Strategic Budgeting")
-    # งบกินรายวัน (ตัวเดิม)
-    daily_food_target = st.number_input("Daily Food & Treat (฿)", value=300, step=50)
-    # งบของเข้าบ้าน (รายเดือน)
-    monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
-    # งบบิลประจำ (รายเดือน)
-    monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
     menu = option_menu(
         menu_title=None, # ไม่เอาหัวข้อเมนู
         options=["Cash Flow", "Wealth Portfolio", "Yearly Planning", "Reward Tracking", "Goals & Budget"],
@@ -160,6 +151,17 @@ styles={
             },
         }
     )
+    st.write("---")
+    
+    # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
+    st.subheader("⚙️ Strategic Budgeting")
+    # งบกินรายวัน (ตัวเดิม)
+    daily_food_target = st.number_input("Daily Food & Treat (฿)", value=300, step=50)
+    # งบของเข้าบ้าน (รายเดือน)
+    monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
+    # งบบิลประจำ (รายเดือน)
+    monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
+
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
