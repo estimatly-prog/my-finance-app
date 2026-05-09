@@ -130,31 +130,30 @@ with st.sidebar:
         menu_icon="cast", 
         default_index=0,
        styles={
-        "container": {
-            "padding": "0!important", 
-            "background-color": "transparent!important" # บังคับโปร่งใสที่ตัวคอนเทนเนอร์
-        },
-        "icon": {
-            "color": "#8BC34A", 
-            "font-size": "20px"
-        },
-        "nav-link": {
-            "font-size": "16px", 
-            "text-align": "left", 
-            "margin": "5px", 
-            "color": "#E0E0E0",
-            # แก้บรรทัดล่างนี้ครับ บังคับให้พื้นหลังเป็นสีเดียวกับ Sidebar (ดำ #050505)
-            "background-color": "#050505!important", 
-            "border": "1px solid rgba(255, 255, 255, 0.1)", 
-            "border-radius": "8px",
-            "--hover-color": "#1E1E1E" 
-        },
-        "nav-link-selected": {
-            "background-color": "#311B92!important", # บังคับสีม่วงตอนเลือก
-            "color": "white",
-            "border": "1px solid #76FF03" 
-        },
-    }
+            "container": {
+                "padding": "0!important", 
+                "background-color": "#050505!important" # 1. ถมดำที่ตัวกล่องใหญ่
+            },
+            "icon": {
+                "color": "#8BC34A", 
+                "font-size": "20px"
+            },
+            "nav-link": {
+                "font-size": "16px", 
+                "text-align": "left", 
+                "margin": "5px", 
+                "color": "#E0E0E0",
+                "background-color": "#050505!important", # 2. ถมดำที่ตัวปุ่ม
+                "border": "1px solid rgba(255, 255, 255, 0.1)", 
+                "border-radius": "8px",
+                "--hover-color": "#1E1E1E" 
+            },
+            "nav-link-selected": {
+                "background-color": "#311B92!important", 
+                "color": "white",
+                "border": "1px solid #76FF03" 
+            },
+        }
     )
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
