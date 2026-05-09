@@ -126,7 +126,7 @@ with st.sidebar:
     menu = option_menu(
         menu_title=None, # ไม่เอาหัวข้อเมนู
         options=["Cash Flow", "Wealth Portfolio", "Yearly Planning", "Reward Tracking", "Goals & Budget"],
-        icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "target"], 
+        icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "bullseye"], 
         menu_icon="cast", 
         default_index=0,
         styles={
