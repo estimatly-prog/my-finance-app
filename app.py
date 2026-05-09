@@ -60,7 +60,7 @@ st.markdown("""
     
     /* 7. ปรับสีปุ่มเป็นสีเขียว Lime ตัวหนังสือดำ (Cyberpunk Style) */
     .stButton>button {
-        background-color: #8BC34A; /* สีเขียวหม่นที่ดูนุ่มนวลขึ้น */
+        background-color: #455A64; /* สีเขียวหม่นที่ดูนุ่มนวลขึ้น */
         color: #FFFFFF !important;  /* เปลี่ยนตัวหนังสือบนปุ่มเป็นสีขาวให้อ่านง่าย */
         border-radius: 8px;
         font-weight: 600;
