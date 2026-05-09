@@ -81,7 +81,7 @@ elif menu == "📈 Wealth Portfolio":
 # --- PAGE: YEARLY PLANNING [GLOBAL PROFESSIONAL EDITION] ---
 elif menu == "📅 Yearly Planning":
     df_fixed_expenses = get_worksheet_data("Fixed_Expenses")
-    yearly_planning.show_yearly_planning(df_fixed)
+    yearly_planning.show_yearly_planning(df_fixed_expenses)
         
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
 elif menu == "💳 Reward Tracking":
