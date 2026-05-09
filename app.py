@@ -153,9 +153,10 @@ styles={
                 "--hover-color": "#1E1E1E" 
             },
             "nav-link-selected": {
-                "background-color": "#311B92!important", 
-                "color": "white",
-                "border": "1px solid #76FF03" 
+                "background-color": "#161B22!important", # สีเทาเข้มแบบ GitHub Dark
+                "color": "#76FF03",                       # ตัวหนังสือเปลี่ยนเป็นเขียว Lime สว่าง (ให้อ่านง่าย)
+                "border": "1px solid rgba(118, 255, 3, 0.3)", # ขอบเขียวจางๆ
+                "font-weight": "700"
             },
         }
     )
