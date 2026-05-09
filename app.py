@@ -151,8 +151,6 @@ styles={
             },
         }
     )
-    st.write("---")
-    
     # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
     st.subheader("⚙️ Strategic Budgeting")
     # งบกินรายวัน (ตัวเดิม)
