@@ -1,11 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
-import plotly.express as px
-import calendar
-import time
-import plotly.graph_objects as go
 from src.database import get_worksheet_data
 from views import portfolio, cashflow, yearly_planning, reward_tracking, goals
 
@@ -30,23 +24,6 @@ st.markdown("""
     .custom-icon { font-size: 40px; line-height: 1; }
     </style>
     """, unsafe_allow_html=True)
-
-# 2. DEFINE FUNCTIONS
-def load_public_data(url, gid):
-    try:
-        base_url = url.split('/edit')[0]
-        csv_url = f"{base_url}/export?format=csv&gid={gid}"
-        return pd.read_csv(csv_url)
-    except: return pd.DataFrame()
-
-def delete_asset(asset_name):
-    try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read(worksheet="Portfolio", ttl=0)
-        df = df[df['Asset_Name'] != asset_name]
-        conn.update(worksheet="Portfolio", data=df)
-        return True
-    except: return False
 
 # 3. SET CONSTANTS & NAVIGATION
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ysf3IANQsMJkttsGOUy9PSKO69D5TrsoWDdkpCTjid4/edit?usp=sharing"
