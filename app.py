@@ -152,7 +152,7 @@ styles={
         }
     )
     # --- [NEW] เพิ่มตัวปรับงบประมาณรายวันแบบ Dynamic ---
-    st.subheader("⚙️ Strategic Budgeting")
+    st.subheader("Strategic Budgeting")
     # งบกินรายวัน (ตัวเดิม)
     daily_food_target = st.number_input("Daily Food & Treat (฿)", value=300, step=50)
     # งบของเข้าบ้าน (รายเดือน)
