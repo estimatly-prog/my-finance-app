@@ -140,7 +140,7 @@ styles={
             },
             "icon": {
                 "color": "#D1D5DB", 
-                "font-size": "20px"
+                "font-size": "18px"
             },
             "nav-link": {
                 "font-size": "16px", 
