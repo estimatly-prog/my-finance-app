@@ -13,57 +13,68 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
     
-    /* 1. ปรับพื้นหลังหลักให้เป็นเทาหม่น (Light Slate) */
+    /* 1. บังคับพื้นหลังให้เป็นสีเทาเข้มแบบ Slate (ไม่ดำสนิทจนหมอง) */
     .stApp {
-        background-color: #F0F2F6;
+        background-color: #0E1117;
     }
 
-    /* 2. ฟอนต์หลัก (ใช้เทาเข้มเกือบดำเพื่อให้อ่านง่ายบนพื้นเทาหม่น) */
-    html, body, [class*="css"], [data-testid="stWidgetLabel"] { 
+    /* 2. บังคับสีฟอนต์พื้นฐานให้เป็นสีขาว/เทาอ่อน (แก้ปัญหาตัวหนังสือหาย) */
+    html, body, [class*="css"], [data-testid="stWidgetLabel"], p, li { 
         font-family: 'Inter', sans-serif; 
-        color: #262730 !important; 
+        color: #E0E0E0 !important; 
+    }
+
+    /* 3. Sidebar ให้เข้มกว่าหน้าจอหลักเล็กน้อย */
+    [data-testid="stSidebar"] {
+        background-color: #050505;
+        border-right: 1px solid #1E1E1E;
     }
     
-    /* 3. ตกแต่ง Sidebar ให้ดูนิ่งและ Professional */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #E6E9EF;
-    }
-
-    /* 4. Header (ม่วงสว่าง -> เขียว Lime) */
+    /* 4. หัวข้อหลัก (ม่วง Electric Purple -> เขียว Lime สว่าง) */
     .app-title {
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        background: linear-gradient(90deg, #6200EA 0%, #76FF03 100%);
+        background: linear-gradient(90deg, #9D50BB 0%, #76FF03 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0 !important;
     }
 
-    /* 5. ปรับแต่งตาราง (Dataframe/Editor) ให้เป็นสีขาวตัดกับพื้นหลังเทา */
+    /* 5. ปรับสี Metric (สีม่วงสำหรับหัวข้อ และสีเขียว Lime สำหรับค่าตัวเลข) */
+    [data-testid="stMetricLabel"] p {
+        color: #9D50BB !important; /* Label สีม่วง */
+        font-weight: 700 !important;
+    }
+    [data-testid="stMetricValue"] div {
+        color: #76FF03 !important; /* Value สีเขียว Lime */
+    }
+
+    /* 6. ปรับสไตล์ตาราง (Dataframe) ไม่ให้ขาวโพลน */
     [data-testid="stDataFrame"] {
-        background-color: #FFFFFF;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 10px;
+        background-color: #161B22 !important;
+        border: 1px solid #30363D;
+        border-radius: 8px;
     }
-
-    /* 6. ปรับสี Metric ให้ดู Premium */
-    [data-testid="stMetricValue"] {
-        color: #6200EA !important; /* ยอดเงินสีม่วง */
-    }
-    [data-testid="stMetricDelta"] {
-        color: #2E7D32 !important; /* ตัวเลขการเปลี่ยนแปลงสีเขียว */
-    }
-
-    /* 7. ปุ่มกด (เขียว Lime) */
+    
+    /* 7. ปรับสีปุ่มเป็นสีเขียว Lime ตัวหนังสือดำ (Cyberpunk Style) */
     .stButton>button {
         background-color: #76FF03;
-        color: #000000;
+        color: #000000 !important;
         border-radius: 8px;
-        font-weight: 700;
+        font-weight: 800;
         border: none;
+        box-shadow: 0 4px 14px 0 rgba(118, 255, 3, 0.3);
+    }
+    .stButton>button:hover {
+        background-color: #64DD17;
+        box-shadow: 0 6px 20px rgba(118, 255, 3, 0.5);
+    }
+
+    /* 8. ปรับสี Expander */
+    .streamlit-expanderHeader {
+        background-color: #161B22 !important;
+        border-radius: 8px !important;
     }
     </style>
     """, unsafe_allow_html=True)
