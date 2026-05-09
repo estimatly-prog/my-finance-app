@@ -71,6 +71,27 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(118, 255, 3, 0.5);
     }
 
+    .brand-container { 
+        display: flex; 
+        align-items: center; 
+        gap: 15px;      /* เพิ่มช่องว่างระหว่างผีกับตัวหนังสือ */
+        margin-bottom: 5px; 
+        padding: 10px 0; /* เพิ่มพื้นที่ให้ดูไม่อึดอัด */
+    }
+
+    .custom-icon { 
+        font-size: 55px !important; /* ขยายขนาดเจ้าผี 👻 ให้ใหญ่ขึ้น */
+        line-height: 1; 
+    }
+
+    /* บังคับชื่อ VELO ใน Sidebar ให้ใหญ่และหนา */
+    .brand-container h1 {
+        font-size: 42px !important; 
+        font-weight: 800 !important;
+        letter-spacing: -2px !important;
+        margin: 0 !important;
+    }
+
     /* 8. ปรับสี Expander */
     .streamlit-expanderHeader {
         background-color: #161B22 !important;
