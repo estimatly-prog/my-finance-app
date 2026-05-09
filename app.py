@@ -139,7 +139,7 @@ styles={
                 "border-radius": "0!important"         # 3. ทำให้มุมคอนเทนเนอร์เหลี่ยมเป๊ะเพื่อไม่ให้เห็นติ่ง
             },
             "icon": {
-                "color": "#8BC34A", 
+                "color": "#D1D5DB", 
                 "font-size": "20px"
             },
             "nav-link": {
