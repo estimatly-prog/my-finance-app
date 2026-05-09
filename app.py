@@ -7,7 +7,7 @@ import calendar
 import time
 import plotly.graph_objects as go
 from src.database import get_worksheet_data
-from views import portfolio, cashflow, yearly_planning, reward_tracking
+from views import portfolio, cashflow, yearly_planning, reward_tracking, goals
 
 # 1. Page Configuration
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
@@ -92,6 +92,4 @@ elif menu == "💳 Reward Tracking":
         
 # --- PAGE: GOALS & BUDGET ---
 elif menu == "🎯 Goals & Budget":
-    st.markdown('<h1 class="app-title">TARGETS.</h1>', unsafe_allow_html=True)
-    # ใส่โค้ดส่วน Savings Goal และ Budget ของคุณต่อได้เลยครับ
-    st.info("Section นี้ใช้ดู Budget และเป้าหมายการออมครับ")
+    goals.show_goals()
