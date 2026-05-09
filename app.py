@@ -7,21 +7,59 @@ from views import portfolio, cashflow, yearly_planning, reward_tracking, goals
 st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", layout="wide")
 
 # --- CUSTOM CSS ---
+# ผมเลือก Option 1 (ม่วงเข้ม + เขียว Lime) มาเป็นต้นแบบนะครับ อ่านง่ายและ Professional
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
-    html, body, [class*="css"]  { font-family: 'Inter', sans-serif; }
-    .brand-container { display: flex; align-items: center; gap: 12px; margin-bottom: -10px; }
+    
+    /* 1. ตั้งค่าฟอนต์หลักและสีตัวหนังสือปกติ (Secondary Text) */
+    html, body, [class*="css"], [data-testid="stWidgetLabel"] { 
+        font-family: 'Inter', sans-serif; 
+        color: #455A64 !important; /* Slate Gray: อ่านง่ายบนพื้นขาว */
+    }
+    
+    /* 2. ตั้งค่าสีพื้นหลังหน้าเว็บเป็นสีขาว (เผื่อไว้) */
+    .stApp {
+        background-color: #FFFFFF;
+    }
+
+    /* 3. ตกแต่ง Sidebar (ถ้า Sidebar ยังหมอง ให้แก้ตรงนี้) */
+    [data-testid="stSidebar"] {
+        background-color: #F8F9FA; /* เทาอ่อนมาก */
+        border-right: 1px solid #EEEEEE;
+    }
+    
+    /* 4. ตกแต่ง Header ของแอป (Gradient ม่วงเข้ม -> เขียว Lime) */
+    .brand-container { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: -10px; 
+    }
     .app-title {
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        background: linear-gradient(90deg, #FFFFFF 0%, #00D1FF 100%);
+        /* Gradient ใหม่: จากม่วงเข้มไปเขียว Lime สว่าง */
+        background: linear-gradient(90deg, #311B92 0%, #76FF03 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0 !important;
     }
     .custom-icon { font-size: 40px; line-height: 1; }
+
+    /* 5. เปลี่ยนสี Primary ของ Streamlit (ปุ่ม, Link, Active Elements) ให้เป็นม่วงสว่าง */
+    .stButton>button {
+        background-color: #6200EA;
+        color: white;
+        border-radius: 8px;
+    }
+    
+    /* 6. แก้สีตารางและ Input ไม่ให้จาง */
+    [data-testid="stDataFrame"] td, [data-testid="stDataFrame"] th {
+        color: #263238 !important; /* Charcoal */
+    }
+    
     </style>
     """, unsafe_allow_html=True)
 
