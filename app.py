@@ -125,7 +125,7 @@ with st.sidebar:
     monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
     menu = option_menu(
         menu_title=None, # ไม่เอาหัวข้อเมนู
-        options=["💸 Cash Flow", "📈 Wealth Portfolio", "📅 Yearly Planning", "💳 Reward Tracking", "🎯 Goals & Budget"],
+        options=["Cash Flow", "Wealth Portfolio", "Yearly Planning", "Reward Tracking", "Goals & Budget"],
         icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "target"], 
         menu_icon="cast", 
         default_index=0,
@@ -151,28 +151,28 @@ with st.sidebar:
 
 
 # --- PAGE 1: CASH FLOW (New Strategic Layout) ---
-if menu == "💸 Cash Flow":
+if menu == "Cash Flow":
     df_raw = get_worksheet_data("Expenses")
     df_portfolio = get_worksheet_data("Portfolio")
     cashflow.show_cashflow(df_raw, df_portfolio, daily_food_target, monthly_super_target, monthly_fixed_target)
    
 # --- PAGE 2: WEALTH PORTFOLIO ---
-elif menu == "📈 Wealth Portfolio":
+elif menu == "Wealth Portfolio":
     df_portfolio = get_worksheet_data("Portfolio")
     portfolio.show_portfolio(df_portfolio)
 
 # --- PAGE: YEARLY PLANNING [GLOBAL PROFESSIONAL EDITION] ---
-elif menu == "📅 Yearly Planning":
+elif menu == "Yearly Planning":
     df_fixed_expenses = get_worksheet_data("Fixed_Expenses")
     yearly_planning.show_yearly_planning(df_fixed_expenses)
         
 # --- PAGE: REWARD TRACKING (Micro-Minimalist Digital Wallet) ---
-elif menu == "💳 Reward Tracking":
+elif menu == "Reward Tracking":
     df_raw = get_worksheet_data("Expenses")
     df_master = get_worksheet_data("Cards_Master")
     df_rules = get_worksheet_data("Multiplier_Rules")
     reward_tracking.show_reward_tracking(df_raw, df_master, df_rules)
         
 # --- PAGE: GOALS & BUDGET ---
-elif menu == "🎯 Goals & Budget":
+elif menu == "Goals & Budget":
     goals.show_goals()
