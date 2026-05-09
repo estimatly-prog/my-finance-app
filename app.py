@@ -132,7 +132,8 @@ with st.sidebar:
        styles={
             "container": {
                 "padding": "0!important", 
-                "background-color": "#050505!important" # 1. ถมดำที่ตัวกล่องใหญ่
+                "margin": "0!important", # เพิ่ม margin เป็น 0
+                "background-color": "#050505!important" 
             },
             "icon": {
                 "color": "#8BC34A", 
@@ -143,7 +144,7 @@ with st.sidebar:
                 "text-align": "left", 
                 "margin": "5px", 
                 "color": "#E0E0E0",
-                "background-color": "#050505!important", # 2. ถมดำที่ตัวปุ่ม
+                "background-color": "#050505!important", 
                 "border": "1px solid rgba(255, 255, 255, 0.1)", 
                 "border-radius": "8px",
                 "--hover-color": "#1E1E1E" 
