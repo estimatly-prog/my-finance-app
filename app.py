@@ -129,31 +129,32 @@ with st.sidebar:
         icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "bullseye"], 
         menu_icon="cast", 
         default_index=0,
-        styles={
-                "container": {
-                    "padding": "0!important", 
-                    "background-color": "transparent" # 1. ทำให้พื้นหลังกล่องเมนูโปร่งใส
-                },
-                "icon": {
-                    "color": "#8BC34A", 
-                    "font-size": "20px"
-                },
-                "nav-link": {
-                    "font-size": "16px", 
-                    "text-align": "left", 
-                    "margin": "5px", 
-                    "color": "#E0E0E0",
-                    "background-color": "transparent", # 2. พื้นหลังปุ่มที่ยังไม่กดให้โปร่งใส
-                    "border": "1px solid rgba(255, 255, 255, 0.1)", # 3. ใส่กรอบบางๆ ให้รู้ว่ากดได้
-                    "border-radius": "8px", # ทำมุมมนให้ดูโมเดิร์น
-                    "--hover-color": "#1E1E1E" 
-                },
-                "nav-link-selected": {
-                    "background-color": "#311B92", # สีม่วงตอนเลือก (เน้นให้เด่น)
-                    "color": "white",
-                    "border": "1px solid #76FF03" # 4. แถม: ใส่ขอบสีเขียว Lime ตอนกดเลือกให้ดู Strategic ขึ้น
-                },
-            }
+       styles={
+        "container": {
+            "padding": "0!important", 
+            "background-color": "transparent!important" # บังคับโปร่งใสที่ตัวคอนเทนเนอร์
+        },
+        "icon": {
+            "color": "#8BC34A", 
+            "font-size": "20px"
+        },
+        "nav-link": {
+            "font-size": "16px", 
+            "text-align": "left", 
+            "margin": "5px", 
+            "color": "#E0E0E0",
+            # แก้บรรทัดล่างนี้ครับ บังคับให้พื้นหลังเป็นสีเดียวกับ Sidebar (ดำ #050505)
+            "background-color": "#050505!important", 
+            "border": "1px solid rgba(255, 255, 255, 0.1)", 
+            "border-radius": "8px",
+            "--hover-color": "#1E1E1E" 
+        },
+        "nav-link-selected": {
+            "background-color": "#311B92!important", # บังคับสีม่วงตอนเลือก
+            "color": "white",
+            "border": "1px solid #76FF03" 
+        },
+    }
     )
     st.write("---")
     st.caption("Strategic Intelligence v2.0")
