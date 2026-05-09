@@ -8,28 +8,29 @@ st.set_page_config(page_title="VELO. | Money Intelligence", page_icon="👻", la
 
 # --- CUSTOM CSS ---
 # ผมเลือก Option 1 (ม่วงเข้ม + เขียว Lime) มาเป็นต้นแบบนะครับ อ่านง่ายและ Professional
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
     
-    /* 1. ตั้งค่าฟอนต์หลักและสีตัวหนังสือปกติ (Secondary Text) */
-    html, body, [class*="css"], [data-testid="stWidgetLabel"] { 
-        font-family: 'Inter', sans-serif; 
-        color: #455A64 !important; /* Slate Gray: อ่านง่ายบนพื้นขาว */
-    }
-    
-    /* 2. ตั้งค่าสีพื้นหลังหน้าเว็บเป็นสีขาว (เผื่อไว้) */
+    /* 1. ปรับพื้นหลังหลักให้เป็นเทาดำนุ่มๆ (Charcoal Gray) */
     .stApp {
-        background-color: #FFFFFF;
+        background-color: #0E1117; /* สีดำลึกแบบซอฟต์ */
     }
 
-    /* 3. ตกแต่ง Sidebar (ถ้า Sidebar ยังหมอง ให้แก้ตรงนี้) */
-    [data-testid="stSidebar"] {
-        background-color: #F8F9FA; /* เทาอ่อนมาก */
-        border-right: 1px solid #EEEEEE;
+    /* 2. ตั้งค่าฟอนต์หลักและสีตัวหนังสือ (สว่างเพื่อให้ตัดกับพื้นหลัง) */
+    html, body, [class*="css"], [data-testid="stWidgetLabel"] { 
+        font-family: 'Inter', sans-serif; 
+        color: #E0E0E0 !important; /* สีเทาอ่อนเกือบขาว เพื่อการอ่านที่สบายตา */
     }
     
-    /* 4. ตกแต่ง Header ของแอป (Gradient ม่วงเข้ม -> เขียว Lime) */
+    /* 3. ตกแต่ง Sidebar ให้ดูมีมิติ (ดำสนิทตัดกับหน้าจอหลัก) */
+    [data-testid="stSidebar"] {
+        background-color: #000000;
+        border-right: 1px solid #1E1E1E;
+    }
+
+    /* 4. ตกแต่ง Header (ม่วง Electric Purple -> เขียว Lime สะท้อนแสง) */
     .brand-container { 
         display: flex; 
         align-items: center; 
@@ -40,24 +41,37 @@ st.markdown("""
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        /* Gradient ใหม่: จากม่วงเข้มไปเขียว Lime สว่าง */
-        background: linear-gradient(90deg, #311B92 0%, #76FF03 100%);
+        /* Gradient: ม่วงนีออน ไป เขียวมะนาว */
+        background: linear-gradient(90deg, #9D50BB 0%, #76FF03 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0 !important;
     }
     .custom-icon { font-size: 40px; line-height: 1; }
 
-    /* 5. เปลี่ยนสี Primary ของ Streamlit (ปุ่ม, Link, Active Elements) ให้เป็นม่วงสว่าง */
+    /* 5. ปุ่มบันทึก (เปลี่ยนเป็นสีเขียว Lime เพื่อให้เด่นสะดุดตา) */
     .stButton>button {
-        background-color: #6200EA;
-        color: white;
+        background-color: #76FF03;
+        color: #000000; /* ตัวหนังสือบนปุ่มสีดำเพื่อความคมชัด */
         border-radius: 8px;
+        font-weight: 700;
+        border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #64DD17; /* เข้มขึ้นเล็กน้อยตอนเอาเม้าส์วาง */
+        box-shadow: 0 0 15px rgba(118, 255, 3, 0.4);
+    }
+
+    /* 6. ปรับสี Metric และกราฟให้เข้าชุดกัน */
+    [data-testid="stMetricValue"] {
+        color: #76FF03 !important; /* ยอดเงินเป็นสีเขียว Lime */
     }
     
-    /* 6. แก้สีตารางและ Input ไม่ให้จาง */
-    [data-testid="stDataFrame"] td, [data-testid="stDataFrame"] th {
-        color: #263238 !important; /* Charcoal */
+    /* 7. ปรับสไตล์ตาราง Data Editor */
+    [data-testid="stDataFrame"] {
+        background-color: #1E1E1E;
+        border-radius: 10px;
     }
     
     </style>
