@@ -123,7 +123,7 @@ with st.sidebar:
     monthly_super_target = st.number_input("Monthly Supermarket (฿)", value=3000, step=500)
     # งบบิลประจำ (รายเดือน)
     monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
-   menu = option_menu(
+    menu = option_menu(
         menu_title=None, # ไม่เอาหัวข้อเมนู
         options=["💸 Cash Flow", "📈 Wealth Portfolio", "📅 Yearly Planning", "💳 Reward Tracking", "🎯 Goals & Budget"],
         icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "target"], 
