@@ -46,7 +46,6 @@ def save_new_asset(new_a_df):
         return True
     except: return False
 
-
 def save_transaction(new_entry_df):
     """ฟังก์ชันบันทึกรายจ่ายลง Google Sheets และล้าง Cache"""
     try:
@@ -65,4 +64,15 @@ def save_transaction(new_entry_df):
         return True
     except Exception as e:
         st.error(f"❌ บันทึกไม่สำเร็จ: {e}")
+        return False
+
+def update_fixed_expenses(df):
+    """ฟังก์ชันอัปเดตข้อมูล Fixed Expenses ทั้งก้อน"""
+    try:
+        conn = get_connection()
+        conn.update(worksheet="Fixed_Expenses", data=df)
+        st.cache_data.clear() # ล้างแคชเพื่อให้กราฟในแอปอัปเดตตาม
+        return True
+    except Exception as e:
+        st.error(f"Sync Failed: {e}")
         return False
