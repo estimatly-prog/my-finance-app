@@ -13,67 +13,58 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
     
-    /* 1. ปรับพื้นหลังหลักให้เป็นเทาดำนุ่มๆ (Charcoal Gray) */
+    /* 1. ปรับพื้นหลังหลักให้เป็นเทาหม่น (Light Slate) */
     .stApp {
-        background-color: #0E1117; /* สีดำลึกแบบซอฟต์ */
+        background-color: #F0F2F6;
     }
 
-    /* 2. ตั้งค่าฟอนต์หลักและสีตัวหนังสือ (สว่างเพื่อให้ตัดกับพื้นหลัง) */
+    /* 2. ฟอนต์หลัก (ใช้เทาเข้มเกือบดำเพื่อให้อ่านง่ายบนพื้นเทาหม่น) */
     html, body, [class*="css"], [data-testid="stWidgetLabel"] { 
         font-family: 'Inter', sans-serif; 
-        color: #E0E0E0 !important; /* สีเทาอ่อนเกือบขาว เพื่อการอ่านที่สบายตา */
+        color: #262730 !important; 
     }
     
-    /* 3. ตกแต่ง Sidebar ให้ดูมีมิติ (ดำสนิทตัดกับหน้าจอหลัก) */
+    /* 3. ตกแต่ง Sidebar ให้ดูนิ่งและ Professional */
     [data-testid="stSidebar"] {
-        background-color: #000000;
-        border-right: 1px solid #1E1E1E;
+        background-color: #FFFFFF;
+        border-right: 1px solid #E6E9EF;
     }
 
-    /* 4. ตกแต่ง Header (ม่วง Electric Purple -> เขียว Lime สะท้อนแสง) */
-    .brand-container { 
-        display: flex; 
-        align-items: center; 
-        gap: 12px; 
-        margin-bottom: -10px; 
-    }
+    /* 4. Header (ม่วงสว่าง -> เขียว Lime) */
     .app-title {
         font-size: 48px !important;
         font-weight: 800 !important;
         letter-spacing: -2px !important;
-        /* Gradient: ม่วงนีออน ไป เขียวมะนาว */
-        background: linear-gradient(90deg, #9D50BB 0%, #76FF03 100%);
+        background: linear-gradient(90deg, #6200EA 0%, #76FF03 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0 !important;
     }
-    .custom-icon { font-size: 40px; line-height: 1; }
 
-    /* 5. ปุ่มบันทึก (เปลี่ยนเป็นสีเขียว Lime เพื่อให้เด่นสะดุดตา) */
+    /* 5. ปรับแต่งตาราง (Dataframe/Editor) ให้เป็นสีขาวตัดกับพื้นหลังเทา */
+    [data-testid="stDataFrame"] {
+        background-color: #FFFFFF;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 10px;
+    }
+
+    /* 6. ปรับสี Metric ให้ดู Premium */
+    [data-testid="stMetricValue"] {
+        color: #6200EA !important; /* ยอดเงินสีม่วง */
+    }
+    [data-testid="stMetricDelta"] {
+        color: #2E7D32 !important; /* ตัวเลขการเปลี่ยนแปลงสีเขียว */
+    }
+
+    /* 7. ปุ่มกด (เขียว Lime) */
     .stButton>button {
         background-color: #76FF03;
-        color: #000000; /* ตัวหนังสือบนปุ่มสีดำเพื่อความคมชัด */
+        color: #000000;
         border-radius: 8px;
         font-weight: 700;
         border: none;
-        transition: 0.3s;
     }
-    .stButton>button:hover {
-        background-color: #64DD17; /* เข้มขึ้นเล็กน้อยตอนเอาเม้าส์วาง */
-        box-shadow: 0 0 15px rgba(118, 255, 3, 0.4);
-    }
-
-    /* 6. ปรับสี Metric และกราฟให้เข้าชุดกัน */
-    [data-testid="stMetricValue"] {
-        color: #76FF03 !important; /* ยอดเงินเป็นสีเขียว Lime */
-    }
-    
-    /* 7. ปรับสไตล์ตาราง Data Editor */
-    [data-testid="stDataFrame"] {
-        background-color: #1E1E1E;
-        border-radius: 10px;
-    }
-    
     </style>
     """, unsafe_allow_html=True)
 
