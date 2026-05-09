@@ -160,7 +160,6 @@ styles={
     # งบบิลประจำ (รายเดือน)
     monthly_fixed_target = st.number_input("Monthly Fixed Bills (฿)", value=630, step=10)
 
-    st.write("---")
     st.caption("Strategic Intelligence v2.0")
 
 
