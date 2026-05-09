@@ -129,11 +129,14 @@ with st.sidebar:
         icons=["wallet2", "graph-up", "calendar-date", "credit-card-2-front", "bullseye"], 
         menu_icon="cast", 
         default_index=0,
-       styles={
+styles={
             "container": {
                 "padding": "0!important", 
-                "margin": "0!important", # เพิ่ม margin เป็น 0
-                "background-color": "#050505!important" 
+                "margin": "0!important", 
+                "background-color": "#050505!important",
+                "border": "none!important",            # 1. ฆ่าขอบของตู้คอนเทนเนอร์
+                "box-shadow": "none!important",        # 2. ฆ่าเงาสีเทาที่ฟุ้งออกมาที่มุม
+                "border-radius": "0!important"         # 3. ทำให้มุมคอนเทนเนอร์เหลี่ยมเป๊ะเพื่อไม่ให้เห็นติ่ง
             },
             "icon": {
                 "color": "#8BC34A", 
@@ -146,7 +149,7 @@ with st.sidebar:
                 "color": "#E0E0E0",
                 "background-color": "#050505!important", 
                 "border": "1px solid rgba(255, 255, 255, 0.1)", 
-                "border-radius": "8px",
+                "border-radius": "8px",                 # ส่วนปุ่มเมนูยังคงความมนไว้ได้ครับ
                 "--hover-color": "#1E1E1E" 
             },
             "nav-link-selected": {
