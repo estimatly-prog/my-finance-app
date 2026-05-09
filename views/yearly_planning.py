@@ -132,7 +132,7 @@ def show_yearly_planning(df_fixed_expenses):
             column_config={
                 "Amount": st.column_config.NumberColumn("Cost (฿)", format="%.2f", min_value=0),
                 "Frequency": st.column_config.SelectboxColumn("Billing", options=["Daily", "Monthly", "Yearly"]),
-                "Cycle_Month": st.column_config.TextColumn("Cycle (1-12/ALL)"),
+                "Cycle_Month": st.column_config.SelectboxColumn(("Cycle (1-12/ALL)"), options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "ALL", "0"], help="เลือกเดือนที่บิลจะมา หรือเลือก ALL สำหรับทุกเดือน"),
                 "Category": st.column_config.SelectboxColumn("Category", options=["Food", "Mobile Internet", "Services", "Internet", "Sports Streaming", "Supermarket", "Gas", "Electricity Bill", "Water Bill", "Common area maintenance charges", "Youtube Premium", "Music Streaming", "Entertainment", "Groceries", "Transport", "Other"]),
                 "Note": st.column_config.TextColumn("Context", width="large")
             },
