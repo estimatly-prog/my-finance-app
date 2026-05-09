@@ -125,7 +125,8 @@ def show_yearly_planning(df_fixed_expenses):
         st.write("---")
         st.markdown("#### 📋 Live Inventory Management")
         st.caption("You can edit, add, or delete items directly in the table below. Click 'Sync to Cloud' to save changes.")
-
+        
+        df_fixed_expenses['Cycle_Month'] = df_fixed_expenses['Cycle_Month'].astype(str).str.upper()
         # ใช้ st.data_editor เพื่อให้ตารางแก้ไขได้แบบ Excel
         edited_df = st.data_editor(
             df_fixed_expenses[['Item', 'Amount', 'Frequency', 'Cycle_Month', 'Category', 'Note']],
