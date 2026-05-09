@@ -153,9 +153,9 @@ styles={
                 "--hover-color": "#1E1E1E" 
             },
             "nav-link-selected": {
-                "background-color": "#161B22!important", # สีเทาเข้มแบบ GitHub Dark
-                "color": "#76FF03",                       # ตัวหนังสือเปลี่ยนเป็นเขียว Lime สว่าง (ให้อ่านง่าย)
-                "border": "1px solid rgba(118, 255, 3, 0.3)", # ขอบเขียวจางๆ
+                "background-color": "#1E1E1E!important",   # เทาเข้มขึ้นมานิดเดียวให้พอดูกดลงไป
+                "color": "#FFFFFF!important",             # ตัวอักษรสีขาวสะอาด
+                "border": "1px solid rgba(255, 255, 255, 0.4)", # ขอบขาวจางๆ ให้ดูมีมิติกระจก
                 "font-weight": "700"
             },
         }
