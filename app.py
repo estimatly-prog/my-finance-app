@@ -59,16 +59,24 @@ st.markdown("""
     
     /* 7. ปรับสีปุ่มเป็นสีเขียว Lime ตัวหนังสือดำ (Cyberpunk Style) */
     .stButton>button {
-        background-color: #76FF03;
-        color: #000000 !important;
+        background-color: #8BC34A; /* สีเขียวหม่นที่ดูนุ่มนวลขึ้น */
+        color: #FFFFFF !important;  /* เปลี่ยนตัวหนังสือบนปุ่มเป็นสีขาวให้อ่านง่าย */
         border-radius: 8px;
-        font-weight: 800;
+        font-weight: 600;
         border: none;
-        box-shadow: 0 4px 14px 0 rgba(118, 255, 3, 0.3);
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2); /* ลดเงาฟุ้งให้ดูคลีนขึ้น */
+        transition: 0.3s;
     }
+    
     .stButton>button:hover {
-        background-color: #64DD17;
-        box-shadow: 0 6px 20px rgba(118, 255, 3, 0.5);
+        background-color: #7CB342; /* เข้มขึ้นเล็กน้อยตอน Hover */
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* แถม: ปรับสี Metric Value ให้เป็นสีเขียวโทนเดียวกัน */
+    [data-testid="stMetricValue"] div {
+        color: #8BC34A !important; 
     }
 
     .brand-container { 
