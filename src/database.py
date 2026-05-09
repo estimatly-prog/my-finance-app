@@ -18,30 +18,20 @@ def get_worksheet_data(worksheet_name):
         return pd.DataFrame()
 
 def delete_asset(asset_name):
-    """ฟังก์ชันลบ: แก้ไขให้กู้คืนสูตรสำหรับหุ้นก่อนบันทึกทับ"""
     try:
         conn = get_connection()
-        # 1. ดึงข้อมูลล่าสุด (ซึ่งตอนนี้ราคาหุ้นจะเป็นตัวเลขคงที่)
         df = conn.read(worksheet="Portfolio", ttl=0)
         
-        # 2. ลบแถวที่ต้องการออก
+        # ลบแถวออกปกติ
         df = df[df['Asset_Name'] != asset_name]
         
-        # 3. --- จุดสำคัญ: กู้คืนสูตรให้หุ้นทุกตัวที่เหลืออยู่ ---
-        # เราจะสั่งว่า: ถ้าคอลัมน์ Type คือ Stock ให้เปลี่ยน Price_Per_Unit เป็นสูตรทันที
-        if not df.empty:
-            df.loc[df['Type'] == 'Stock', 'Price_Per_Unit'] = df[df['Type'] == 'Stock'].apply(
-                lambda row: f'=YAHOOPRICE("{row["Asset_Name"]}")', axis=1
-            )
-        
-        # 4. อัปเดตกลับไปที่ Google Sheets (ตอนนี้ค่าจะเป็นสูตรแล้ว)
+        # บันทึกกลับทันที (ไม่ต้องพยายามแก้สูตรในนี้)
         conn.update(worksheet="Portfolio", data=df)
         
-        # ล้าง Cache เพื่อให้หน้าจอดึงข้อมูลใหม่
         st.cache_data.clear() 
         return True
     except Exception as e:
-        print(f"Error deleting asset: {e}")
+        st.error(f"Error: {e}")
         return False
         
 def save_new_asset(new_a_df):
